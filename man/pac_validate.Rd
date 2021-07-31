@@ -2,14 +2,15 @@
 % Please edit documentation in R/valid.R
 \name{pac_validate}
 \alias{pac_validate}
-\title{Validate a specific package}
+\title{Validate a specific local package}
 \usage{
 pac_validate(
   pac,
   lib.loc = NULL,
   fields = c("Depends", "Imports", "LinkingTo"),
   lifeduration = FALSE,
-  checkred = FALSE
+  checkred = FALSE,
+  repos = "https://cran.rstudio.com/"
 )
 }
 \arguments{
@@ -22,6 +23,8 @@ pac_validate(
 \item{lifeduration}{logical if to add life duration column, might take some time. Default: FALSE}
 
 \item{checkred}{logical if to add R CRAN check page status, any WARNING or ERROR will give TRUE. Default FALSE}
+
+\item{repos}{character the base URL of the repositories to use. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 data.frame with 5/6/7 columns.
@@ -31,19 +34,21 @@ data.frame with 5/6/7 columns.
 \item{Version.have}{character installed package version.}
 \item{version_status}{ numeric -1/0/1 which comes from \code{utils::compareVersion} function.
 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
-\item{life_duration}{(Optional) integer number of days package was released.}
 \item{newest}{ logical if the installed version is the newest one.}
 \item{checkred}{(Optional) logical if the newest package contains any errors or warnings on CRAN check page.}
+\item{life_duration}{(Optional) integer number of days package was released.}
 }
 }
 \description{
-Checking the healthy of the specific packages.
+Checking if installed package dependencies have correct versions taking into account their DESCRIPTION files requirements.
+Moreover identifying which packages are newest releases.
+Optionally we could add life duration and CRAN check page status for each dependency.
 }
 \note{
 Version.expected.min column not count packages which are not a dependency for any package, so could not be find in DESCRIPTION files.
 When turn on the \code{lifeduration} and/or \code{checkred} options, calculations might be time consuming.
 Please as a courtesy to the R CRAN, don't overload their server by constantly using this function with \code{lifeduration} or \code{checkred} turned on.
-Results are cached for 1 hour with \code{memoise} package, memory cache.
+Results are cached with \code{memoise} package, memory cache.
 }
 \examples{
 pac_validate("memoise")

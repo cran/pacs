@@ -2,9 +2,15 @@
 % Please edit documentation in R/lifeduration.R
 \name{pac_lifeduration}
 \alias{pac_lifeduration}
-\title{Package life duration at specific Date or for a specific version}
+\title{Package version life duration at specific Date or for a specific version}
 \usage{
-pac_lifeduration(pac, version = NULL, at = NULL)
+pac_lifeduration(
+  pac,
+  version = NULL,
+  at = NULL,
+  lib.loc = NULL,
+  repos = "https://cran.rstudio.com/"
+)
 }
 \arguments{
 \item{pac}{character a package name.}
@@ -12,9 +18,13 @@ pac_lifeduration(pac, version = NULL, at = NULL)
 \item{version}{character version of package. Default: NULL}
 
 \item{at}{Date old version of package. Default: NULL}
+
+\item{lib.loc}{character vector. Is omitted for non NULL version. Default: NULL}
+
+\item{repos}{character the base URL of the repositories to use. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
-logical if package is healthy.
+list named of \code{difftime}, number of days package version was the newest one.
 }
 \description{
 using CRAN website to get a package life duration for certain version or at a specific Date.
@@ -27,4 +37,5 @@ Results are cached for 1 hour with \code{memoise} package, memory cache.
 \examples{
 pac_lifeduration("memoise")
 pac_lifeduration("dplyr", version = "0.8.0")
+pac_lifeduration("dplyr", at = as.Date("2019-02-14"))
 }

@@ -1,3 +1,24 @@
+# 0.2.8
+
+* Added `pac_last` to check the most recent package version.
+* Added additional usage example `pacs::pac_compare_versions` in `README` file. 
+* CRAN version 0.2.8 .
+
+# 0.2.7
+
+* Removed all `pacs` functions, to give somebody the freedom of using different loop functions.
+* Added a hint to use `mclapply` for non Windows users.
+* Use `vapply` over the `parallel::mclapply` to be sure about the result length.
+* Added additional `ad.Date` so on older R versions binding is correct.
+
+# 0.2.6
+
+* Replace `gregexec` with a `stringi` function, as not supported on older R versions.
+* Improved performance of `lib_validate` function, under default arguments and whole R CRAN library will consume 2 seconds.
+* Update `roxygen2` descriptions.
+* Added `lib.loc` and `repos` arguments to more functions.
+* `mclapply` under many functions.
+
 # 0.2.5
 
 * Cache results only for 1 hour, could be important when run on servers.
@@ -24,7 +45,7 @@
 * Remove `base` argument in `pac_true_size`, as not see any value added.
 * Add `checkred` variable for validation functions.
 * `pac_health` for newest release younger than x days, checking if package is red labeled on CRAN checks pages.
-* Default 14 days as limit for healthy version, and non red check for the newest version.
+* Default 14 days as limit for valid version, and non red check for the newest version.
 * Added new functions `pac_checkred`/`pacs_checkred`.
 
 # 0.2.2

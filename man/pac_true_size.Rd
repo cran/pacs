@@ -2,7 +2,7 @@
 % Please edit documentation in R/size.R
 \name{pac_true_size}
 \alias{pac_true_size}
-\title{Package true size}
+\title{True size of the package}
 \usage{
 pac_true_size(
   pac,
@@ -24,7 +24,7 @@ pac_true_size(
 numeric size in bytes, to get MB then divide by \code{10**6}.
 }
 \description{
-Package true size as it takes into account its dependencies.
+True size of the package as it takes into account its dependencies.
 }
 \note{
 R base packages are not counted.
@@ -32,6 +32,5 @@ R base packages are not counted.
 \examples{
 # size in MB, with all its dependencies
 pacs::pac_true_size("memoise") / 10**6
-# exclude packages if at least one other package use it too
-pacs::pac_true_size("memoise", exclude_joint = 1L) / 10**6
+
 }

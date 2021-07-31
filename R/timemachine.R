@@ -5,6 +5,7 @@
 #' @param from Date new version of package. Default: NULL
 #' @param version character version of package. Default: NULL
 #' @param to Date CRAN URL. Default: NULL
+#' @param repos character the base URL of the repositories to use. Default `https://cran.rstudio.com/`
 #' @return data.frame
 #' @note Function will scrap two CRAN URLS. Works only with CRAN packages.
 #' Please as a courtesy to the R CRAN, don't overload their servers by constantly using this function.
@@ -15,13 +16,19 @@
 #' pac_timemachine("dplyr", at = as.Date("2017-02-02"))
 #' pac_timemachine("dplyr", from = as.Date("2017-02-02"), to = as.Date("2018-04-02"))
 #' pac_timemachine("dplyr", at = Sys.Date())
-pac_timemachine <- function(pac, at = NULL, from = NULL, to = NULL, version = NULL) {
-  stopifnot(pac %in% c(rownames(available_packages()), pacs_base()))
+pac_timemachine <- function(pac,
+                            at = NULL,
+                            from = NULL,
+                            to = NULL,
+                            version = NULL,
+                            repos = "https://cran.rstudio.com/") {
+  stopifnot(pac %in% c(rownames(available_packages(repos = repos)), pacs_base()))
+  stopifnot(is.null(version) || (length(version) == 1 && is.character(version)))
   stopifnot(xor(
     !is.null(at) && inherits(at, "Date") && is.null(version),
     !is.null(from) && !is.null(to) && from <= to && inherits(from, "Date") && inherits(to, "Date") && is.null(at) && is.null(version)
   ) ||
-    all(c(is.null(at), is.null(from), is.null(to), is.null(version))) || (!is.null(version) && length(version) == 1))
+    all(c(is.null(at), is.null(from), is.null(to), is.null(version))) || (!is.null(version) && length(version) == 1 && is.character(version)))
 
   result <- pac_archived(pac)
   cran_page <- pac_cran_recent(pac)
@@ -30,7 +37,7 @@ pac_timemachine <- function(pac, at = NULL, from = NULL, to = NULL, version = NU
     return(cran_page)
   }
 
-  result$Archived <- as.Date(c(result$Released[-1], cran_page$Released), origin = "1970-01-01")
+  result$Archived <- as.Date(c(result$Released[-1], cran_page$Released))
   result$Life_Duration <- result$Archived - result$Released
   f_cols <- c("Package", "Version", "Released", "Archived", "Life_Duration", "URL", "Size")
   result <- rbind(result[, f_cols], cran_page[, f_cols])
@@ -55,29 +62,6 @@ pac_timemachine <- function(pac, at = NULL, from = NULL, to = NULL, version = NU
   }
 }
 
-#' Packages versions at a specific Date or a Date interval
-#' @description using CRAN website to get packages version/versions used at a specific Date or a Date interval.
-#' @param pacs character vector packages names.
-#' @param at Date old version of package. Default: NULL
-#' @param from Date new version of package. Default: NULL
-#' @param to Date CRAN URL. Default: NULL
-#' @return data.frame
-#' @note Function will scrap two CRAN URLS. Works only with CRAN packages.
-#' For bigger lists might need a few minutes.
-#' Please as a courtesy to the R CRAN, don't overload their servers by constantly using this function.
-#' The base part of URL in the result is `https://cran.r-project.org/src/contrib/`.
-#' Results are cached for 1 hour with `memoise` package.
-#' @export
-#' @examples
-#' pacs_timemachine(c("dplyr", "memoise"), from = as.Date("2018-06-30"), to = as.Date("2019-01-01"))
-#' pacs_timemachine(c("dplyr", "memoise"), at = Sys.Date())
-pacs_timemachine <- function(pacs, at = NULL, from = NULL, to = NULL) {
-  pacs_cran <- intersect(pacs, rownames(available_packages()))
-  pacs_skip <- setdiff(pacs, pacs_cran)
-  if (length(pacs_skip)) cat("Skipping non CRAN packages", pacs_skip, "\n")
-  stats::setNames(lapply(pacs_cran, function(pac) pac_timemachine(pac, at, from, to)), pacs_cran)
-}
-
 pac_cran_recent_raw <- function(pac) {
   cran_page <- try(readLines(sprintf("https://CRAN.R-project.org/package=%s", pac)), silent = TRUE)
   if (!inherits(cran_page, "try-error")) {
@@ -86,7 +70,7 @@ pac_cran_recent_raw <- function(pac) {
 
     data.frame(
       Package = pac,
-      Released = cran_released,
+      Released = as.Date(cran_released),
       Size = NA,
       Description = NA,
       Version = cran_v,
@@ -114,20 +98,20 @@ pac_cran_recent <- memoise::memoise(pac_cran_recent_raw, cache = cachem::cache_m
 
 pac_archived_raw <- function(pac) {
   base_archive <- sprintf("/src/contrib/Archive/%s/", pac)
-  rr <- try(readLines(paste0("https://cran.r-project.org/", base_archive)), silent = TRUE)
+  rr <- try(readLines(paste0("https://cran.r-project.org", base_archive)), silent = TRUE)
 
   if (!inherits(rr, "try-error")) {
     rr_range <- grep("</?table>", rr)
     rrr <- rr[(rr_range[1] + 1):(rr_range[2] - 1)]
     # not use rvest as it is too big dependency
-    header <- regmatches(rrr[[1]], gregexec(">([^<>]+)<", rrr[[1]]))[[1]][2, ]
+    header <- stringi::stri_match_all(rrr[[1]], regex = ">([^<>]+)<")[[1]][, 2]
 
     result_raw <- as.data.frame(
       do.call(
         rbind,
         lapply(
           4:(length(rrr) - 1),
-          function(x) regmatches(rrr[x], gregexec(">([^<>]+)<", rrr[x]))[[1]][2, ]
+          function(x) stringi::stri_match_all(rrr[x], regex = ">([^<>]+)<")[[1]][, 2]
         )
       ),
       stringsAsFactors = FALSE

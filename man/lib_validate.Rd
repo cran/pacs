@@ -2,13 +2,14 @@
 % Please edit documentation in R/valid.R
 \name{lib_validate}
 \alias{lib_validate}
-\title{Validate the library.}
+\title{Validate the local library}
 \usage{
 lib_validate(
   lib.loc = NULL,
   fields = c("Depends", "Imports", "LinkingTo"),
   lifeduration = FALSE,
-  checkred = FALSE
+  checkred = FALSE,
+  repos = "https://cran.rstudio.com/"
 )
 }
 \arguments{
@@ -19,6 +20,8 @@ lib_validate(
 \item{lifeduration}{logical if to add life duration column, might take some time. Default: FALSE}
 
 \item{checkred}{logical if to add R CRAN check page status, any WARNING or ERROR will give TRUE. Default FALSE}
+
+\item{repos}{character the base URL of the repositories to use. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 data.frame with 5/6/7 columns.
@@ -28,23 +31,25 @@ data.frame with 5/6/7 columns.
 \item{Version.have}{character installed package version.}
 \item{version_status}{ numeric -1/0/1 which comes from \code{utils::compareVersion} function.
 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
-\item{life_duration}{(Optional) integer number of days package was released.}
 \item{newest}{ logical if the installed version is the newest one.}
 \item{checkred}{(Optional) logical if the newest package contains any errors or warnings on CRAN check page.}
+\item{life_duration}{(Optional) integer number of days package was released.}
 }
 }
 \description{
-Compare current and expected packages under \code{.libPaths}.
-Checking the healthy of the library, which packages are newest one.
-Optionally added life duration of each package.
+Checking if installed packages have correct versions taking into account all DESCRIPTION files requirements.
+Moreover identifying which packages are newest releases.
+Optionally we could add life duration and CRAN check page status for each package.
 }
 \note{
 Version.expected.min column not count packages which are not a dependency for any package, so could not be find in DESCRIPTION files.
 When turn on the \code{lifeduration} and/or \code{checkred} options, calculations might be time consuming.
 Please as a courtesy to the R CRAN, don't overload their server by constantly using this function with \code{lifeduration} or \code{checkred} turned on.
-Results are cached for 1 hour with \code{memoise} package, memory cache.
+Results are NOT cached with \code{memoise} package, as \code{mclapply} function is used.
+For \code{lifeduration} and \code{checkred} options there is used the \code{parallel::mclapply} function.
+Remember that \code{parallel::mclapply} under Windows works like the regular \code{lapply} function.
+To set higher number of cores use code like \code{options(mc.cores = parallel::detectCores() - 1)} at the beginning of your session.
 }
 \examples{
 lib_validate()
-
 }
