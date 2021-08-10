@@ -33,7 +33,7 @@ pac_deps(
 
 \item{recursive}{logical if to assess the dependencies recursively. Default: TRUE}
 
-\item{repos}{character the base URL of the repositories to use. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character the base URL of the repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 data.frame with packages and their versions. Versions are taken from \code{installed.packages} or newest released.
@@ -46,9 +46,13 @@ When function is invoked in the loop afterwards binded results could be aggregat
 \code{stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)}.
 }
 \examples{
+\dontrun{
 pacs::pac_deps("stats", base = TRUE)$Package
 pacs::pac_deps("memoise")$Package
 pacs::pac_deps("memoise", description_v = FALSE)
 # raw dependencies from DESCRIPTION file
 pacs::pac_deps("memoise", description_v = TRUE, recursive = FALSE)
+# raw dependencies from DESCRIPTION file - last release
+pacs::pac_deps("memoise", description_v = TRUE, local = FALSE, recursive = FALSE)
+}
 }

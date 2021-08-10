@@ -87,8 +87,10 @@ is_online <- function(site = "https://example.com/") {
 #' @param startup logical include only startup packages. Default: FALSE
 #' @return character vector
 #' @examples
+#' \dontrun{
 #' pacs_base()
 #' pacs_base(startup = TRUE)
+#' }
 #' @export
 #'
 pacs_base <- function(startup = FALSE) {
@@ -187,7 +189,7 @@ last_version_fun <- memoise::memoise(last_version_raw, cache = cachem::cache_mem
 #' Getting the most recent package version
 #' @description using `utils::available.packages` to get the newest package version.
 #' @param pac character a package name.
-#' @param repos character the base URL of the repositories to use. Default `https://cran.rstudio.com/`
+#' @param repos character the base URL of the repository to use. Default `https://cran.rstudio.com/`
 #' @return character most recent package version.
 #' @note Results are cached for 1 hour with `memoise` package.
 #' @export
@@ -273,38 +275,3 @@ available_agg_fun_raw <- function(repos = "https://cran.rstudio.com/", fields) {
 }
 
 available_agg_fun <- memoise::memoise(available_agg_fun_raw, cache = cachem::cache_mem(max_age = 60*60))
-
-is_red_check_raw <- function(pac, scope = c("ERROR", "WARN"), repos = "https://cran.rstudio.com/") {
-  if (!pac %in% rownames(available_packages(repos = repos))) {
-    return(NA)
-  }
-  any(grepl(sprintf("Result: (?:%s)", paste(scope, collapse = "|")),
-            get_cran_check_page(pac),
-    perl = TRUE
-  ))
-}
-
-get_cran_check_page_raw <- function(pac) {
-  readLines(sprintf("https://cran.r-project.org/web/checks/check_results_%s.html", pac))
-}
-
-get_cran_check_page <- memoise::memoise(get_cran_check_page_raw, cache = cachem::cache_mem(max_age = 60*60))
-
-#' Checking the R CRAN package check page status
-#' @description using R CRAN package check page to validate if there are ANY errors and/or warnings and/or notes.
-#' @param pac character a package name.
-#' @param scope character vector scope of the check, accepted values c("ERROR", "WARN", "NOTE"). Default c("ERROR", "WARN")
-#' @param repos character the base URL of the repositories to use. Default `https://cran.rstudio.com/`
-#' @return logical if the package fail under specified criteria.
-#' @note Results are cached for 1 hour with `memoise` package.
-#' @export
-#' @examples
-#' pac_checkred("dplyr")
-#' pac_checkred("dplyr", scope = c("ERROR"))
-pac_checkred <- function(pac, scope = c("ERROR", "WARN"), repos = "https://cran.rstudio.com/") {
-  stopifnot(all(scope %in% c("ERROR", "WARN", "NOTE")))
-  stopifnot((length(pac) == 1) && is.character(pac))
-  stopifnot(is.character(repos))
-
-  is_red_check_raw(pac, scope, repos = repos)
-}

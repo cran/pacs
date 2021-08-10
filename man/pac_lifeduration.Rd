@@ -15,16 +15,16 @@ pac_lifeduration(
 \arguments{
 \item{pac}{character a package name.}
 
-\item{version}{character version of package. Default: NULL}
+\item{version}{character version of package, by default the local version is taken if not available then the newest is assumed. Default: NULL}
 
 \item{at}{Date old version of package. Default: NULL}
 
 \item{lib.loc}{character vector. Is omitted for non NULL version. Default: NULL}
 
-\item{repos}{character the base URL of the repositories to use. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character the base URL of the repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
-list named of \code{difftime}, number of days package version was the newest one.
+\code{difftime}, number of days package version was the newest one.
 }
 \description{
 using CRAN website to get a package life duration for certain version or at a specific Date.
@@ -35,7 +35,9 @@ Please as a courtesy to the R CRAN, don't overload their server by constantly us
 Results are cached for 1 hour with \code{memoise} package, memory cache.
 }
 \examples{
+\dontrun{
 pac_lifeduration("memoise")
 pac_lifeduration("dplyr", version = "0.8.0")
 pac_lifeduration("dplyr", at = as.Date("2019-02-14"))
+}
 }

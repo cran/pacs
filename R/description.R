@@ -5,13 +5,15 @@
 #' @param at Date. Default: NULL
 #' @param local logical if to use local library. Default: FALSE
 #' @param lib.loc character used optionally when local is equal TRUE. Default: NULL
-#' @param repos character the base URL of the repositories to use. Default `https://cran.rstudio.com/`
+#' @param repos character the base URL of the repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return list with names proper for DESCRIPTION file fields.
 #' @note Results are cached for 1 hour with `memoise` package.
 #' @export
 #' @examples
+#' \dontrun{
 #' pac_description("dplyr", version = "0.8.0")
 #' pac_description("dplyr", at = as.Date("2019-02-01"))
+#' }
 pac_description <- function(pac,
                             version = NULL,
                             at = NULL,
@@ -31,6 +33,7 @@ pac_description <- function(pac,
   }
 
   if (local && (is.null(version) || (!is.null(version) && isTRUE(utils::packageDescription(pac)$Version == version)))) {
+    if (!pac %in% installed_packages(lib.loc = lib.loc)) return(list())
     return(utils::packageDescription(pac, lib.loc))
   } else {
     pac_description_dcf(pac, version, at)
@@ -40,7 +43,7 @@ pac_description <- function(pac,
 pac_description_dcf_raw <- function(pac, version, at) {
   if (!is.null(at)) {
     tt <- pac_timemachine(pac, at = at)
-    version <- utils::tail(tt[order(tt$Life_Duration), ], 1)$Version
+    version <- utils::tail(tt[order(tt$LifeDuration), ], 1)$Version
   }
 
   ee <- tempfile()
@@ -91,10 +94,14 @@ pac_description_dcf_raw <- function(pac, version, at) {
     temp_dir <- tempdir(check = TRUE)
     utils::untar(temp_tar, exdir = temp_dir)
     # tabs are not acceptable
-    as.list(read.dcf(file.path(temp_dir, pac, "DESCRIPTION"))[1, ])
+    result <- as.list(read.dcf(file.path(temp_dir, pac, "DESCRIPTION"))[1, ])
+    unlink("temp_dir", recursive = TRUE)
   } else {
-    as.list(read.dcf(ee)[1, ])
+    result <- as.list(read.dcf(ee)[1, ])
+    unlink(ee)
   }
+
+  result
 }
 
 pac_description_dcf <- memoise::memoise(pac_description_dcf_raw, cache = cachem::cache_mem(max_age = 60 * 60))

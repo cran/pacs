@@ -24,10 +24,19 @@ pac_timemachine(
 
 \item{version}{character version of package. Default: NULL}
 
-\item{repos}{character the base URL of the repositories to use. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character the base URL of the repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
-data.frame
+data.frame with 7 columns
+\describe{
+\item{Package}{character package name.}
+\item{Version}{character package version.}
+\item{Released}{character release Date}
+\item{Archived}{character archived Date.}
+\item{LifeDuration}{\code{difftime} number of days the version was the newest one.}
+\item{URL}{character the suffix of the base URL to tar.gz file.}
+\item{Size}{character size of the \code{tar.gz} file.}
+}
 }
 \description{
 using CRAN website to get a package version/versions used at a specific Date or a Date interval.
@@ -39,7 +48,9 @@ The base part of URL in the result is \verb{https://cran.r-project.org/src/contr
 Results are cached for 1 hour with \code{memoise} package.
 }
 \examples{
+\dontrun{
 pac_timemachine("dplyr", at = as.Date("2017-02-02"))
 pac_timemachine("dplyr", from = as.Date("2017-02-02"), to = as.Date("2018-04-02"))
 pac_timemachine("dplyr", at = Sys.Date())
+}
 }

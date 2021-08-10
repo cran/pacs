@@ -6,37 +6,47 @@
 #' @param lib.loc character. Default: NULL
 #' @param fields character vector with possible values `c("Depends", "Imports", "LinkingTo", "Suggests")`. Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lifeduration logical if to add life duration column, might take some time. Default: FALSE
-#' @param checkred logical if to add R CRAN check page status, any WARNING or ERROR will give TRUE. Default FALSE
-#' @param repos character the base URL of the repositories to use. Default `https://cran.rstudio.com/`
+#' @param checkred list with two named fields, `scope` and `flavor`. `scope` of R CRAN check pages statuses to consider, any of `c("ERROR", "FAIL", "WARN", "NOTE")`. `flavor` is a vector of CRAN machines to consider, which might be retrieved with `pacs::cran_flavors()$Flavor`. By default an empty scope field deactivated assessment for `checkred` column, and NULL flavor will results in checking all machines. Default `list(scope = character(0), flavor = NULL)`
+#' @param repos character the base URL of the repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return data.frame with 5/6/7 columns.
 #' \describe{
-#' \item{Package}{character package names.}
+#' \item{Package}{character a package name.}
 #' \item{Version.expected.min}{character expected by DESCRIPTION files minimal version. "" means not specified so the newest version.}
 #' \item{Version.have}{character installed package version.}
 #' \item{version_status}{ numeric -1/0/1 which comes from `utils::compareVersion` function.
 #' 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
-#' \item{newest}{ logical if the installed version is the newest one.}
-#' \item{checkred}{(Optional) logical if the newest package contains any errors or warnings on CRAN check page.}
-#' \item{life_duration}{(Optional) integer number of days package was released.}
+#' \item{newest}{logical if the installed version is the newest one.}
+#' \item{checkred}{(Optional) logical if the NEWEST package contains any specified statuses on CRAN check page. `pacs::checked_packages` is used to quickly retrieve all statuses at once.}
+#' \item{lifeduration}{(Optional) integer number of days a package was released.}
 #' }
 #' @note Version.expected.min column not count packages which are not a dependency for any package, so could not be find in DESCRIPTION files.
-#' When turn on the `lifeduration` and/or `checkred` options, calculations might be time consuming.
-#' Please as a courtesy to the R CRAN, don't overload their server by constantly using this function with `lifeduration` or `checkred` turned on.
-#' Results are NOT cached with `memoise` package, as `mclapply` function is used.
-#' For `lifeduration` and `checkred` options there is used the `parallel::mclapply` function.
-#' Remember that `parallel::mclapply` under Windows works like the regular `lapply` function.
-#' To set higher number of cores use code like `options(mc.cores = parallel::detectCores() - 1)` at the beginning of your session.
+#' When turn on the `lifeduration` options, calculations might be time consuming.
+#' Results are cached for 1 hour with `memoise` package.
 #' @export
 #' @examples
+#' \dontrun{
 #' lib_validate()
+#' lib_validate(checkred = list(scope = c("ERROR", "FAIL", "WARN")))
+#' lib_validate(checkred = list(scope = c("ERROR", "FAIL"),
+#'              flavors = cran_flavors()$Flavor[1:2]))
+#' # activate lifeduration argument, could be time consuming for bigger libraries.
+#' lib_validate(lifeduration = TRUE,
+#'              checkred = list(scope = c("ERROR", "FAIL")))
+#' }
 lib_validate <- function(lib.loc = NULL,
                          fields = c("Depends", "Imports", "LinkingTo"),
                          lifeduration = FALSE,
-                         checkred = FALSE,
+                         checkred = list(scope = character(0), flavors = NULL),
                          repos = "https://cran.rstudio.com/") {
   stopifnot(is.null(lib.loc) || all(lib.loc %in% .libPaths()))
   stopifnot(all(fields %in% c("Depends", "Imports", "Suggests", "LinkingTo")))
   stopifnot(is.logical(lifeduration))
+  stopifnot(is.list(checkred) &&
+              length(checkred) %in% c(1,2) &&
+              (c("scope") %in% names(checkred)) &&
+              length(checkred$scope) == 0 || all(checkred$scope %in% c("ERROR", "FAIL", "WARN", "NOTE")) &&
+              is.null(checkred$flavors) || all(checkred$flavors %in% cran_flavors()$Flavor)
+  )
 
   installed_agg <- installed_agg_fun(lib.loc, fields)
 
@@ -73,14 +83,17 @@ lib_validate <- function(lib.loc = NULL,
                   sort = FALSE,
                   all.x = TRUE)
 
-  if (checkred) {
-    cat("Please wait, Packages CRAN check statuses are assessed.\n")
-    result$checkred <- vapply(parallel::mclapply(seq_len(nrow(result)), function(x) result$newest[x] && pac_checkred(result$Package[x])), function(z) if (length(z) == 0) NA else z, logical(1))
+  if (length(checkred$scope)) {
+    checkred_all <- checked_packages()
+    flavors <- if (is.null(checkred$flavors)) grep("r-", colnames(checkred_all)) else checkred$flavors
+    checkred_all$red_status <- apply(checkred_all[, flavors, drop = FALSE], 1, function(x) any(x %in% checkred$scope))
+    checkred_names_scope <- checkred_all$Package[checkred_all$red_status]
+    result$checkred <- (result$Package %in% checkred_names_scope) & result$newest
   }
 
   if (lifeduration) {
     cat("Please wait, Packages life durations are assessed.\n")
-    result$life_duration <- vapply(parallel::mclapply(seq_len(nrow(result)), function(x) pac_lifeduration(result[x, "Package", drop = TRUE], as.character(result[x, "Version.have", drop = TRUE]), repos = repos, lib.loc = lib.loc)), function(z) if (length(z) == 0) NA_real_ else z, numeric(1))
+    result$lifeduration <- vapply(seq_len(nrow(result)), function(x) pac_lifeduration(result[x, "Package", drop = TRUE], as.character(result[x, "Version.have", drop = TRUE]), repos = repos, lib.loc = lib.loc), numeric(1))
   }
 
   result
@@ -95,36 +108,47 @@ lib_validate <- function(lib.loc = NULL,
 #' @param lib.loc character. Default: NULL
 #' @param fields character vector with possible values `c("Depends", "Imports", "LinkingTo", "Suggests")`. Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lifeduration logical if to add life duration column, might take some time. Default: FALSE
-#' @param checkred logical if to add R CRAN check page status, any WARNING or ERROR will give TRUE. Default FALSE
-#' @param repos character the base URL of the repositories to use. Default `https://cran.rstudio.com/`
+#' @param checkred list with two named fields, `scope` and `flavor`. `scope` of R CRAN check pages statuses to consider, any of `c("ERROR", "FAIL", "WARN", "NOTE")`. `flavor` vector of machines to consider, which might be retrieved with `pacs::cran_flavors()$Flavor`. By default an empty scope field deactivated assessment for `checkred` column, and NULL flavor will results in checking all machines. Default `list(scope = character(0), flavor = NULL)`
+#' @param repos character the base URL of the repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return data.frame with 5/6/7 columns.
 #' \describe{
-#' \item{Package}{character package names.}
+#' \item{Package}{character a package name.}
 #' \item{Version.expected.min}{character expected by DESCRIPTION files minimal version. "" means not specified so the newest version.}
 #' \item{Version.have}{character installed package version.}
 #' \item{version_status}{ numeric -1/0/1 which comes from `utils::compareVersion` function.
 #' 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
 #' \item{newest}{ logical if the installed version is the newest one.}
-#' \item{checkred}{(Optional) logical if the newest package contains any errors or warnings on CRAN check page.}
-#' \item{life_duration}{(Optional) integer number of days package was released.}
+#' \item{checkred}{(Optional) logical if the NEWEST package contains any specified statuses on CRAN check page.}
+#' \item{lifeduration}{(Optional) integer number of days a package was released.}
 #' }
 #' @note Version.expected.min column not count packages which are not a dependency for any package, so could not be find in DESCRIPTION files.
-#' When turn on the `lifeduration` and/or `checkred` options, calculations might be time consuming.
+#' When turn on the `lifeduration` option, calculations might be time consuming.
 #' Please as a courtesy to the R CRAN, don't overload their server by constantly using this function with `lifeduration` or `checkred` turned on.
 #' Results are cached with `memoise` package, memory cache.
 #' @export
 #' @examples
+#' \dontrun{
 #' pac_validate("memoise")
-#'
+#' pac_validate("memoise",
+#'              lifeduration = TRUE,
+#'              checkred = list(scope = c("ERROR", "FAIL"), flavors = NULL))
+#' }
 pac_validate <- function(pac,
                          lib.loc = NULL,
                          fields = c("Depends", "Imports", "LinkingTo"),
                          lifeduration = FALSE,
-                         checkred = FALSE,
+                         checkred = list(scope = character(0), flavors = NULL),
                          repos = "https://cran.rstudio.com/") {
   stopifnot(is.null(lib.loc) || all(lib.loc %in% .libPaths()))
   stopifnot(all(fields %in% c("Depends", "Imports", "Suggests", "LinkingTo")))
   stopifnot((length(pac) == 1) && is.character(pac))
+  stopifnot(is.logical(lifeduration))
+  stopifnot(is.list(checkred) &&
+              length(checkred) %in% c(1,2) &&
+              (c("scope") %in% names(checkred)) &&
+              length(checkred$scope) == 0 || all(checkred$scope %in% c("ERROR", "FAIL", "WARN", "NOTE")) &&
+              is.null(checkred$flavors) || all(checkred$flavors %in% cran_flavors()$Flavor)
+  )
 
   descriptions_pac <- pac_deps(pac, lib.loc = lib.loc, fields = fields, description_v = TRUE)
   installed_pac <- pac_deps(pac, lib.loc = lib.loc, fields = fields)
@@ -142,14 +166,12 @@ pac_validate <- function(pac,
 
   result$newest <- apply(result, 1, function(x) is_last_release(x["Package"], x["Version.have"]))
 
-  if (checkred) {
-    cat("Please wait, Packages CRAN check statuses are assessed.\n")
-    result$checkred <- vapply(seq_len(nrow(result)), function(x) isTRUE(result$newest[x] && pac_checkred(result$Package[x])), logical(1))
+  if (length(checkred$scope)) {
+    result$checkred <- vapply(seq_len(nrow(result)), function(x) isTRUE(result$newest[x] && pac_checkred(result$Package[x], scope = checkred$scope, flavors = checkred$flavors, repos = repos)), logical(1))
   }
 
   if (lifeduration) {
-    cat("Please wait, Packages life durations are assessed.\n")
-    result$life_duration <- vapply(seq_len(nrow(result)), function(x) pac_lifeduration(result[x, "Package", drop = TRUE], as.character(result[x, "Version.have", drop = TRUE]), repos = repos), numeric(1))
+    result$lifeduration <- vapply(seq_len(nrow(result)), function(x) pac_lifeduration(result[x, "Package", drop = TRUE], as.character(result[x, "Version.have", drop = TRUE]), repos = repos, lib.loc = lib.loc), numeric(1))
   }
 
   result

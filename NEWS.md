@@ -1,3 +1,41 @@
+# 0.3.2
+
+* New CRAN release.
+* Added `\dontrun` to most of examples as `utils::installed.packages` consumes 30 seconds on win-builder.
+
+# 0.3.1
+
+* Small docs improvements.
+* Additional tests, maintain coverage over 80%.
+* Additional input validation.
+* Added `xml2` to imports.
+* Update `README` file.
+
+# 0.3.0
+
+* Added `pac_checkpage` and `cran_flavors`.
+* Added `flavors` argument to functions checking packages statuses so only specific server might be considered.
+* New `checkred` argument definition for `validate` family functions.
+* Remove `dontrun` from `lib_validate`.
+* Improving docs and descriptions.
+
+# 0.2.10
+
+*  Using `https://cran.r-project.org/web/checks/check_summary_by_package.html` to efficiently check the CRAN check pages globally. As a result `lib_validate` is hugely more efficient when `checkred` argument is triggered.
+* Remove `mclapply` `README` examples, add notes that parallel computations might be unstable.
+* Remove parallel computation from `pacs::lib_validate` as might be unstable and is already optimized.
+* Added `checked_packages()` to retrieve the html table from `https://cran.r-project.org/web/checks/check_summary_by_package.html`, all CRAN checks.
+* Removed `pac_comapre_exports` and replace with more general `pac_comapre_namespace`.
+
+# 0.2.9
+
+* Fixed `pac_lifeduration`, not work for old packages which do not have UTC in published Date.
+* Added optional `FAIL` status when checking `CRAN` check pages.
+* `checkred` argument from `lib_validate` will expecting any values from `c("ERROR", "FAIL", "WARN", "NOTE")` vector.
+* Default `scope` for `pac_checkred` will be `c("ERROR", "FAIL")`.
+* Improve `pac_compare_versions`, e.g. Default old version is the local one and the new one is the last release.
+* Added `pac_comapre_exports` and `pac_namespace`.
+
 # 0.2.8
 
 * Added `pac_last` to check the most recent package version.
@@ -9,7 +47,7 @@
 * Removed all `pacs` functions, to give somebody the freedom of using different loop functions.
 * Added a hint to use `mclapply` for non Windows users.
 * Use `vapply` over the `parallel::mclapply` to be sure about the result length.
-* Added additional `ad.Date` so on older R versions binding is correct.
+* Added additional `as.Date` so on older R versions binding is correct.
 
 # 0.2.6
 

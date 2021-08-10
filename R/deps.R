@@ -8,17 +8,21 @@
 #' @param description_v if the dependencies version should be taken from description files, minimal required. Default: FALSE
 #' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for FALSE as a additional record. Default: TRUE
 #' @param recursive logical if to assess the dependencies recursively. Default: TRUE
-#' @param repos character the base URL of the repositories to use. Default `https://cran.rstudio.com/`
+#' @param repos character the base URL of the repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return data.frame with packages and their versions. Versions are taken from `installed.packages` or newest released.
 #' @note When function is invoked in the loop afterwards binded results could be aggregated like,
 #' `stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)`.
 #' @export
 #' @examples
+#' \dontrun{
 #' pacs::pac_deps("stats", base = TRUE)$Package
 #' pacs::pac_deps("memoise")$Package
 #' pacs::pac_deps("memoise", description_v = FALSE)
 #' # raw dependencies from DESCRIPTION file
 #' pacs::pac_deps("memoise", description_v = TRUE, recursive = FALSE)
+#' # raw dependencies from DESCRIPTION file - last release
+#' pacs::pac_deps("memoise", description_v = TRUE, local = FALSE, recursive = FALSE)
+#' }
 pac_deps <- function(pac,
                      fields = c("Depends", "Imports", "LinkingTo"),
                      lib.loc = NULL,
@@ -108,6 +112,8 @@ pac_deps <- function(pac,
     attr(res_df, "Package") <- pac
     attr(res_df, "Version") <- pac_v
   }
+
+  rownames(res_df) <- NULL
 
   res_df
 }
