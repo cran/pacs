@@ -4,6 +4,10 @@ replaceNA <- function(vec, with) {
   vec
 }
 
+isNA <- function(x) {
+  isTRUE(length(x) == 1 && is.na(x))
+}
+
 #' Maximum version across the vector
 #' @description Reduce function over the `utils::compareVersion`
 #' @param vec character vector
@@ -75,7 +79,7 @@ dir_size <- function(path, recursive = TRUE) {
 is_online <- function(site = "https://example.com/") {
   tryCatch(
     {
-      suppressWarnings(readLines(site, n = 1))
+      suppressWarnings(readLines(site, n = 1, warn = FALSE))
       TRUE
     },
     error = function(e) FALSE
@@ -126,10 +130,10 @@ installed_descriptions <- function(lib.loc, fields, deps = NULL) {
   versions <- desc_e$versions
 
   joint <- data.frame(
-        Version = unlist(lapply(seq_along(packages), function(x) replaceNA(versions[[x]], ""))),
-        Package = unlist(lapply(seq_along(packages), function(x)  replace(packages[[x]], packages[[x]] == "NA", NA))),
-        stringsAsFactors = FALSE
-      )
+    Version = unlist(lapply(seq_along(packages), function(x) replaceNA(versions[[x]], ""))),
+    Package = unlist(lapply(seq_along(packages), function(x) replace(packages[[x]], packages[[x]] == "NA", NA))),
+    stringsAsFactors = FALSE
+  )
 
   res_agg <- stats::aggregate(
     joint[, c("Version"), drop = FALSE],
@@ -152,83 +156,44 @@ installed_agg_fun_raw <- function(lib.loc = NULL, fields) {
   installed_agg
 }
 
-installed_agg_fun <- memoise::memoise(installed_agg_fun_raw, cache = cachem::cache_mem(max_age = 60*60))
+installed_agg_fun <- memoise::memoise(installed_agg_fun_raw, cache = cachem::cache_mem(max_age = 60 * 60))
 
-available_packages <- function(repos = "https://cran.rstudio.com/") {
-  available_packages_raw(repos = repos)
+#' List Available Packages at CRAN-like Repositories
+#' @description available_packages returns a matrix of details corresponding to packages currently available at one or more repositories. The current list of packages is downloaded over the internet (or copied from a local mirror).
+#' @param repos character vector, the base URL(s) of the repositories to use. Default `pacs::biocran_repos()`
+available_packages <- function(repos = biocran_repos()) {
+  tryCatch(available_packages_raw(repos = repos), error = function(e) NA)
 }
 
-available_packages_raw <- memoise::memoise(utils::available.packages, cache = cachem::cache_mem(max_age = 60*60))
+available_packages_raw <- memoise::memoise(utils::available.packages, cache = cachem::cache_mem(max_age = 60 * 60))
 
 installed_packages <- function(lib.loc = NULL, priority = NULL) {
   installed_packages_raw(lib.loc = lib.loc, priority = priority)
 }
 
-installed_packages_raw <- memoise::memoise(utils::installed.packages, cache = cachem::cache_mem(max_age = 60*60))
+installed_packages_raw <- memoise::memoise(utils::installed.packages, cache = cachem::cache_mem(max_age = 60 * 60))
 
 extract_deps <- function(x) {
   splited <- stri_split_fixed(x, ",")
   trimed <- lapply(splited, stri_trim)
-  v_reg <- function(x) vapply(stringi::stri_match_all(x, regex = "([0-9\\.-]+)\\)"),
-                              function(i) `[`(i, 2),
-                              character(1))
+  v_reg <- function(x) {
+    vapply(
+      stringi::stri_match_all(x, regex = "([0-9\\.-]+)\\)"),
+      function(i) `[`(i, 2),
+      character(1)
+    )
+  }
   versions <- lapply(trimed, v_reg)
-  v_pac <- function(x) vapply(stri_split_regex(x, "[ \n\\(]"),
-                              function(x) `[[`(x, 1),
-                              character(1))
+  v_pac <- function(x) {
+    vapply(
+      stri_split_regex(x, "[ \n\\(]"),
+      function(x) `[[`(x, 1),
+      character(1)
+    )
+  }
   pacs <- lapply(trimed, v_pac)
   list(packages = pacs, versions = versions)
 }
-
-last_version_raw <- function(pac , repos) {
-  available_packages()[rownames(available_packages()) == pac, "Version"]
-}
-
-last_version_fun <- memoise::memoise(last_version_raw, cache = cachem::cache_mem(max_age = 60*60))
-
-#' Getting the most recent package version
-#' @description using `utils::available.packages` to get the newest package version.
-#' @param pac character a package name.
-#' @param repos character the base URL of the repository to use. Default `https://cran.rstudio.com/`
-#' @return character most recent package version.
-#' @note Results are cached for 1 hour with `memoise` package.
-#' @export
-#' @examples
-#' pac_last("dplyr")
-pac_last <- function(pac, repos = "https://cran.rstudio.com/") {
-  stopifnot((length(pac) == 1) && is.character(pac))
-  stopifnot(is.character(repos))
-
-  if (!pac %in% rownames(available_packages(repos = repos))) {
-    return(NA)
-  }
-  last_version_fun(pac, repos = repos)
-}
-
-is_last_release <- function(pac, version = NULL, at = NULL, lib.loc = NULL, repos = "https://cran.rstudio.com/") {
-  stopifnot(xor(!is.null(version), !is.null(at)) || (is.null(version) && is.null(at)))
-
-  if (!pac %in% rownames(available_packages(repos = repos))) {
-    return(NA)
-  }
-
-  last_version <- available_packages()[rownames(available_packages(repos = repos)) == pac, "Version"]
-
-  is_installed <- isTRUE(pac %in% rownames(installed_packages(lib.loc = lib.loc)))
-
-  if (is.null(version) && is.null(at)) {
-    if (is_installed) {
-      version <- pac_description(pac, local = TRUE)$Version
-    } else {
-      return(FALSE)
-    }
-  } else if (is.null(version) && !is.null(at)) {
-    version <- utils::tail(pac_timemachine(pac = pac, at = at, repos = repos), 1)$Version
-  }
-
-  isTRUE(utils::compareVersion(last_version, version) == 0)
-}
-
 
 available_descriptions <- function(repos, fields, deps = NULL) {
   available_agg <- available_agg_fun(repos, fields)
@@ -249,7 +214,7 @@ available_descriptions <- function(repos, fields, deps = NULL) {
 
   joint <- data.frame(
     Version = unlist(sapply(seq_along(packages), function(x) replaceNA(versions[[x]], ""))),
-    Package = unlist(sapply(seq_along(packages), function(x)  replace(packages[[x]], packages[[x]] == "NA", NA))),
+    Package = unlist(sapply(seq_along(packages), function(x) replace(packages[[x]], packages[[x]] == "NA", NA))),
     stringsAsFactors = FALSE
   )
 
@@ -274,4 +239,4 @@ available_agg_fun_raw <- function(repos = "https://cran.rstudio.com/", fields) {
   available_agg
 }
 
-available_agg_fun <- memoise::memoise(available_agg_fun_raw, cache = cachem::cache_mem(max_age = 60*60))
+available_agg_fun <- memoise::memoise(available_agg_fun_raw, cache = cachem::cache_mem(max_age = 60 * 60))

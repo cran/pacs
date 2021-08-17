@@ -9,19 +9,19 @@ pac_lifeduration(
   version = NULL,
   at = NULL,
   lib.loc = NULL,
-  repos = "https://cran.rstudio.com/"
+  repos = biocran_repos()
 )
 }
 \arguments{
 \item{pac}{character a package name.}
 
-\item{version}{character version of package, by default the local version is taken if not available then the newest is assumed. Default: NULL}
+\item{version}{character package version, By default the newest version is taken. Default: NULL}
 
 \item{at}{Date old version of package. Default: NULL}
 
 \item{lib.loc}{character vector. Is omitted for non NULL version. Default: NULL}
 
-\item{repos}{character the base URL of the repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character vector base URLs of the repositories to use. By default checking CRAN and newest Bioconductor. Default \code{pacs::biocran_repos()}}
 }
 \value{
 \code{difftime}, number of days package version was the newest one.
@@ -30,7 +30,7 @@ pac_lifeduration(
 using CRAN website to get a package life duration for certain version or at a specific Date.
 }
 \note{
-Function will scrap two CRAN URLS. Works only with CRAN packages.
+Function will scrap two github CRAN mirror and CRAN URL. Works mainly with CRAN packages.
 Please as a courtesy to the R CRAN, don't overload their server by constantly using this function.
 Results are cached for 1 hour with \code{memoise} package, memory cache.
 }
@@ -39,5 +39,7 @@ Results are cached for 1 hour with \code{memoise} package, memory cache.
 pac_lifeduration("memoise")
 pac_lifeduration("dplyr", version = "0.8.0")
 pac_lifeduration("dplyr", at = as.Date("2019-02-14"))
+# For Bioconductor packages will work only for the newest per R version and installed packages.
+pac_lifeduration("S4Vectors")
 }
 }

@@ -1,4 +1,4 @@
-#' Package dependencies
+#' package dependencies
 #' @description Package dependencies from DESCRIPTION files with installed or expected versions or newest released.
 #' @param pac character a package name.
 #' @param fields character vector with possible values `c("Depends", "Imports", "LinkingTo", "Suggests")`. Default: `c("Depends", "Imports", "LinkingTo")`
@@ -8,7 +8,7 @@
 #' @param description_v if the dependencies version should be taken from description files, minimal required. Default: FALSE
 #' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for FALSE as a additional record. Default: TRUE
 #' @param recursive logical if to assess the dependencies recursively. Default: TRUE
-#' @param repos character the base URL of the repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
+#' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return data.frame with packages and their versions. Versions are taken from `installed.packages` or newest released.
 #' @note When function is invoked in the loop afterwards binded results could be aggregated like,
 #' `stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)`.
@@ -74,7 +74,7 @@ pac_deps <- function(pac,
     deps(pac, fields)
     v_base <- installed_packages(lib.loc = lib.loc)
   } else {
-    stopifnot(pac %in% rownames(available_packages(repos)))
+    stopifnot(pac_isin(pac, repos))
     paks_global <- tools::package_dependencies(pac,
       db = available_packages(repos),
       which = fields,

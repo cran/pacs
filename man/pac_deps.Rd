@@ -2,7 +2,7 @@
 % Please edit documentation in R/deps.R
 \name{pac_deps}
 \alias{pac_deps}
-\title{Package dependencies}
+\title{package dependencies}
 \usage{
 pac_deps(
   pac,
@@ -33,7 +33,7 @@ pac_deps(
 
 \item{recursive}{logical if to assess the dependencies recursively. Default: TRUE}
 
-\item{repos}{character the base URL of the repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character the base URL of the CRAN repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 data.frame with packages and their versions. Versions are taken from \code{installed.packages} or newest released.

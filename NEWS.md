@@ -1,3 +1,13 @@
+# 0.3.3
+
+* Partly support BioConductor.
+* Default repositories mainly now consists of not only CRAN as BioConductor is considered too.
+* Fix `lib_validate` as it not take into account statuses for not fully performed tests, it was case for less than 1% of all packages.
+* Add note that `checked_packages` could return duplicated observations which is expected.
+* Improve merge in `lib_validate` to show non-CRAN packages too.
+* Rewrite some tests as some R CRAN servers might shut down.
+* Polishing code of `pac_lifeduration`.
+
 # 0.3.2
 
 * New CRAN release.

@@ -5,7 +5,6 @@
 #' @param from Date new version of package. Default: NULL
 #' @param version character version of package. Default: NULL
 #' @param to Date CRAN URL. Default: NULL
-#' @param repos character the base URL of the repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return data.frame with 7 columns
 #' \describe{
 #' \item{Package}{character package name.}
@@ -31,9 +30,8 @@ pac_timemachine <- function(pac,
                             at = NULL,
                             from = NULL,
                             to = NULL,
-                            version = NULL,
-                            repos = "https://cran.rstudio.com/") {
-  stopifnot(pac %in% rownames(available_packages(repos = repos)))
+                            version = NULL) {
+  stopifnot(pac_isin(pac, "https://cran.rstudio.com/"))
   stopifnot(is.null(version) || (length(version) == 1 && is.character(version)))
   stopifnot(xor(
     !is.null(at) && inherits(at, "Date") && is.null(version),
@@ -44,8 +42,12 @@ pac_timemachine <- function(pac,
   result <- pac_archived(pac)
   cran_page <- pac_cran_recent(pac)
 
-  if (is.null(result)) {
+  if (isNA(result)) {
     return(cran_page)
+  }
+
+  if (isNA(cran_page)) {
+    return(NA)
   }
 
   result$Archived <- as.Date(c(result$Released[-1], cran_page$Released))
@@ -74,7 +76,7 @@ pac_timemachine <- function(pac,
 }
 
 pac_cran_recent_raw <- function(pac) {
-  cran_page <- try(readLines(sprintf("https://CRAN.R-project.org/package=%s", pac)), silent = TRUE)
+  cran_page <- try(suppressWarnings(readLines(sprintf("https://CRAN.R-project.org/package=%s", pac), warn = FALSE)), silent = TRUE)
   if (!inherits(cran_page, "try-error") && any(grepl(pac, cran_page))) {
     cran_v <- utils::head(gsub("</?td>", "", cran_page[grep("Version:", cran_page) + 1]), 1)
     cran_released <- utils::head(gsub("</?td>", "", cran_page[grep("Published:", cran_page) + 1]), 1)
@@ -94,16 +96,7 @@ pac_cran_recent_raw <- function(pac) {
       stringsAsFactors = FALSE
     )
   } else {
-    data.frame(
-      Package = pac,
-      Version = NA,
-      Released = NA,
-      Archived = NA,
-      LifeDuration = NA,
-      URL = NA,
-      Size = NA,
-      stringsAsFactors = FALSE
-    )
+    NA
   }
 }
 
@@ -111,17 +104,20 @@ pac_cran_recent <- memoise::memoise(pac_cran_recent_raw, cache = cachem::cache_m
 
 pac_archived_raw <- function(pac) {
   base_archive <- sprintf("/src/contrib/Archive/%s/", pac)
-  rr <- try(readLines(paste0("https://cran.r-project.org", base_archive)), silent = TRUE)
+  rr <- try(suppressWarnings(readLines(paste0("https://cran.r-project.org", base_archive), warn = FALSE)), silent = TRUE)
 
   if (!inherits(rr, "try-error") && any(grepl(pac, rr))) {
     rr_range <- grep("</?table>", rr)
+    if (length(rr_range) != 2) {
+      return(NA)
+    }
     rrr <- rr[(rr_range[1] + 1):(rr_range[2] - 1)]
-    # not use rvest as it is too big dependency
     header <- trimws(xml_text(xml_find_all(read_html(rrr[1]), "//th")))
 
     result_raw <- as.data.frame(matrix(trimws(xml_text(xml_find_all(read_html(paste(rrr[2:length(rrr)], collapse = "\n")), "//td"))),
-                         ncol = length(header),
-                         nrow = length(rrr) - 3, byrow = TRUE))
+      ncol = length(header),
+      nrow = length(rrr) - 3, byrow = TRUE
+    ))
     result_raw <- result_raw[-1, -1]
     colnames(result_raw) <- header[-1]
 
@@ -137,7 +133,7 @@ pac_archived_raw <- function(pac) {
     result$Version <- pac_v
     result <- result[order(result$Released), ]
   } else {
-    result <- NULL
+    result <- NA
   }
 
   result

@@ -2,14 +2,12 @@
 % Please edit documentation in R/check.R
 \name{pac_checkpage}
 \alias{pac_checkpage}
-\title{Retrieving the package R CRAN check page}
+\title{Retrieving the R CRAN package check page}
 \usage{
-pac_checkpage(pac, repos = "https://cran.rstudio.com/")
+pac_checkpage(pac)
 }
 \arguments{
 \item{pac}{character a package name.}
-
-\item{repos}{character the base URL of the repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 data.frame.
@@ -23,5 +21,7 @@ If you need to check many packages at once then is recommended usage of \code{pa
 Please as a courtesy to the R CRAN, don't overload their server by constantly using this function.
 }
 \examples{
+\dontrun{
 pac_checkpage("dplyr")
+}
 }
