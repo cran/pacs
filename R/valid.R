@@ -16,7 +16,7 @@
 #' \item{version_status}{ numeric -1/0/1 which comes from `utils::compareVersion` function.
 #' 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
 #' \item{newest}{logical if the installed version is the newest one. For Bioconductor if is the newest one per R version.}
-#' \item{cran}{logical if the package is on CRAN, version is not taken into accout here.}
+#' \item{cran}{logical if the package is on CRAN, version is not taken into account here.}
 #' \item{checkred}{(Optional) logical if the NEWEST package contains any specified statuses on CRAN check page. `pacs::checked_packages` is used to quickly retrieve all statuses at once.}
 #' \item{lifeduration}{(Optional) integer number of days a package was released.}
 #' }
@@ -60,7 +60,8 @@ lib_validate <- function(lib.loc = NULL,
 
   res_agg <- installed_descriptions(lib.loc, fields)
 
-  result <- merge(res_agg,
+  result <- merge(
+    res_agg,
     rbind(
       installed_agg[, c("Package", "Version")],
       data.frame(
@@ -69,7 +70,7 @@ lib_validate <- function(lib.loc = NULL,
       )
     ),
     by = "Package",
-    all.y = TRUE,
+    all = TRUE,
     suffix = c(".expected.min", ".have")
   )
 
@@ -77,7 +78,8 @@ lib_validate <- function(lib.loc = NULL,
 
   result <- result[!is.na(result$Package) & !(result$Package %in% c("", "NA", pacs_base())), ]
 
-  newest_df <- merge(installed_agg[, c("Package", "Version")],
+  newest_df <- merge(
+    installed_agg[, c("Package", "Version")],
     available_packages(repos = repos)[, c("Package", "Version")],
     by = "Package",
     all.x = TRUE,
@@ -86,7 +88,8 @@ lib_validate <- function(lib.loc = NULL,
 
   newest_df$newest <- as.character(newest_df$Version.x) == as.character(newest_df$Version.y)
 
-  result <- merge(result,
+  result <- merge(
+    result,
     newest_df[, c("Package", "newest")],
     by = "Package",
     sort = FALSE,
@@ -103,7 +106,8 @@ lib_validate <- function(lib.loc = NULL,
   cran_df$cran <- !is.na(cran_df$Version.y)
   cran_df$cran[is.na(cran_df$cran)] <- FALSE
 
-  result <- merge(result,
+  result <- merge(
+    result,
     cran_df[, c("Package", "cran")],
     by = "Package",
     sort = FALSE,
@@ -130,6 +134,11 @@ lib_validate <- function(lib.loc = NULL,
     result$lifeduration <- vapply(seq_len(nrow(result)), function(x) pac_lifeduration(result[x, "Package", drop = TRUE], as.character(result[x, "Version.have", drop = TRUE]), repos = repos, lib.loc = lib.loc), numeric(1))
   }
 
+  not_installed <- is.na(result$Version.have)
+  if (any(not_installed)) {
+    result[not_installed, intersect(c("newest", "checkred"), colnames(result))] <- NA
+  }
+
   result
 }
 
@@ -151,8 +160,9 @@ lib_validate <- function(lib.loc = NULL,
 #' \item{Version.have}{character installed package version.}
 #' \item{version_status}{ numeric -1/0/1 which comes from `utils::compareVersion` function.
 #' 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
+#' \item{direct}{ logical if the package is in the first depencency layer, direct depencencies from DESCRIPTION file.}
 #' \item{newest}{ logical if the installed version is the newest one.}
-#' \item{cran}{logical if the package is on CRAN, version is not taken into accout here.}
+#' \item{cran}{logical if the package is on CRAN, version is not taken into account here.}
 #' \item{checkred}{(Optional) logical if the NEWEST package contains any specified statuses on CRAN check page.}
 #' \item{lifeduration}{(Optional) integer number of days a package was released.}
 #' }
@@ -187,9 +197,12 @@ pac_validate <- function(pac,
   stopifnot(is.character(repos))
 
   descriptions_pac <- pac_deps(pac, lib.loc = lib.loc, fields = fields, description_v = TRUE)
+  descriptions_pac_direct <- pac_deps(pac, lib.loc = lib.loc, fields = fields, description_v = TRUE, recursive = FALSE)
+
   installed_pac <- pac_deps(pac, lib.loc = lib.loc, fields = fields)
 
-  result <- merge(descriptions_pac,
+  result <- merge(
+    descriptions_pac,
     installed_pac,
     by = "Package",
     all = TRUE,
@@ -197,9 +210,12 @@ pac_validate <- function(pac,
   )
 
   if (nrow(result)) {
+
     result$version_status <- apply(result, 1, function(x) utils::compareVersion(x["Version.have"], x["Version.expected.min"]))
 
     result <- result[!is.na(result$Package) & !(result$Package %in% c("NA", pacs_base())), ]
+
+    result$direct <- result$Package %in% descriptions_pac_direct$Package
 
     result$newest <- apply(result, 1, function(x) isTRUE(pac_islast(x["Package"], version = x["Version.have"], repos = repos)))
 
@@ -212,6 +228,12 @@ pac_validate <- function(pac,
     if (lifeduration) {
       result$lifeduration <- vapply(seq_len(nrow(result)), function(x) pac_lifeduration(result[x, "Package", drop = TRUE], as.character(result[x, "Version.have", drop = TRUE]), repos = repos, lib.loc = lib.loc), numeric(1))
     }
+
+    not_installed <- is.na(result$Version.have)
+    if (any(not_installed)) {
+      result[not_installed, intersect(c("newest", "checkred"), colnames(result))] <- NA
+    }
   }
+
   result
 }
