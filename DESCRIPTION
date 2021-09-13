@@ -1,6 +1,6 @@
 Package: pacs
 Title: Supplementary Tools for R Packages Developers
-Version: 0.3.4
+Version: 0.3.5
 Authors@R: 
     person(given = "Maciej",
            family = "Nasinski",
@@ -27,7 +27,7 @@ Suggests: remotes, withr, testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: memoise, stringi, xml2
 NeedsCompilation: no
-Packaged: 2021-09-05 19:24:41 UTC; maciejnasinski
+Packaged: 2021-09-13 18:48:04 UTC; maciejnasinski
 Author: Maciej Nasinski [aut, cre]
 Repository: CRAN
-Date/Publication: 2021-09-06 20:20:02 UTC
+Date/Publication: 2021-09-13 19:10:02 UTC
