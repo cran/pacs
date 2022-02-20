@@ -22,7 +22,7 @@ pac_health(
 
 \item{at}{Date old version of package. Default: NULL}
 
-\item{limit}{numeric at least days to treat as healthy. Default: 14}
+\item{limit}{numeric at least days to treat as healthy, ">=limit". Default: 14}
 
 \item{scope}{character vector scope of R CRAN check pages statuses to consider, any of \code{c("ERROR", "FAIL", "WARN", "NOTE")}. Default \code{c("ERROR", "FAIL")}}
 
@@ -33,7 +33,7 @@ pac_health(
 \item{repos}{character the base CRAN URL of the repository to use. Default "https://cran.rstudio.org"}
 }
 \value{
-logical if package is healthy.
+logical if a package is healthy.
 }
 \description{
 using CRAN website to get a package version/versions used at a specific Date interval.
@@ -44,12 +44,13 @@ CRAN team gives around one/two week to resolved a package which gave errors unde
 Function will scrap two/tree CRAN URLS. Works only with CRAN packages.
 The newest release are checked for warnings/errors on R CRAN check page.
 Please as a courtesy to the R CRAN, don't overload their server by constantly using this function.
-Results are cached for 1 hour with \code{memoise} package, memory cache.
+Results are cached for 30 minutes with \code{memoise} package, memory cache.
 }
 \examples{
 \dontrun{
 pac_health("memoise")
 pac_health("dplyr", version = "0.8.0", limit = 14)
+pac_health("dplyr", at = as.Date("2019-02-14"))
 pac_health("dplyr", limit = 14, scope = c("ERROR", "FAIL"))
 }
 }

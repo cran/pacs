@@ -15,7 +15,8 @@ pac_lifeduration(
 \arguments{
 \item{pac}{character a package name.}
 
-\item{version}{character package version, By default the newest version is taken. Default: NULL}
+\item{version}{character package version, By default the newest version is taken.
+The local repository has priority, it version is available. Default: NULL}
 
 \item{at}{Date old version of package. Default: NULL}
 
@@ -32,7 +33,7 @@ using CRAN website to get a package life duration for certain version or at a sp
 \note{
 Function will scrap two github CRAN mirror and CRAN URL. Works mainly with CRAN packages.
 Please as a courtesy to the R CRAN, don't overload their server by constantly using this function.
-Results are cached for 1 hour with \code{memoise} package, memory cache.
+Results are cached for 30 minutes with \code{memoise} package, memory cache.
 }
 \examples{
 \dontrun{

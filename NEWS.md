@@ -1,3 +1,35 @@
+# pacs 0.4.2
+
+* fix one of the validation of the `lib_validate` function.
+* cache results with `memoise` for 30 minutes, not 1 hour.
+* small README update.
+
+# pacs 0.4.1
+
+* `pacs::biocran_repos` not includes the `BioCbooks` field for `Bioc` versions smaller than "3.12".
+* improve `pac_deps`, NA versions for not installed packages.
+* updated `fields` argument of the`pac_deps` function, now has the same shape as `which` argument in the `tools::package_dependencies` function.
+* more tests, 90 percent coverage.
+* More clear distinction when working without Internet.
+
+# pacs 0.4.0
+
+* `pac_deps` fully depends on `tools::package_dependencies`.
+* fix `pac_deps` problems when Suggests field is used, showed only installed packages.
+* expose the `dir_size` function.
+* add new functions `app_size` and `app_deps`.
+* "getting started" vignette instead of the long README.
+* get back functions reference table in the README.
+* new Imports dependency, `renv`.
+
+# pacs 0.3.8
+
+* fix testthat tests.
+* skip an unstable test on CRAN, a new package could be installed on the server during the check is running.
+* accepting `"Enhances"` field in all related functions.
+* improve the code for reading html tables.
+* updated README file.
+
 # pacs 0.3.7
 
 * fixed a bug for `lib_validate` when a custom library path is used.

@@ -15,7 +15,9 @@ lib_validate(
 \arguments{
 \item{lib.loc}{character vector. Default: \code{.libPaths()}}
 
-\item{fields}{character vector with possible values \code{c("Depends", "Imports", "LinkingTo", "Suggests")}. Default: \code{c("Depends", "Imports", "LinkingTo")}}
+\item{fields}{a character vector listing the types of dependencies, a subset of c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances").
+Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
+Default: \code{c("Depends", "Imports", "LinkingTo")}}
 
 \item{lifeduration}{logical if to add life duration column, might take some time. Default: FALSE}
 
@@ -24,17 +26,17 @@ lib_validate(
 \item{repos}{character vector base URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default \code{pacs::biocran_repos()}}
 }
 \value{
-data.frame with 6/7/8 columns.
+data.frame with 4/6/7/8 columns.
 \describe{
 \item{Package}{character a package name.}
 \item{Version.expected.min}{character expected by DESCRIPTION files minimal version. "" means not specified so the newest version.}
 \item{Version.have}{character installed package version.}
 \item{version_status}{ numeric -1/0/1 which comes from \code{utils::compareVersion} function.
 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
-\item{newest}{logical if the installed version is the newest one. For Bioconductor if is the newest one per R version.}
-\item{cran}{logical if the package is on CRAN, version is not taken into account here.}
-\item{checkred}{(Optional) logical if the NEWEST package contains any specified statuses on CRAN check page. \code{pacs::checked_packages} is used to quickly retrieve all statuses at once.}
-\item{lifeduration}{(Optional) integer number of days a package was released.}
+\item{newest}{logical (Internet needed) if the installed version is the newest one. For Bioconductor if is the newest one per R version.}
+\item{cran}{logical (Internet needed) if the package is on CRAN, version is not taken into account here.}
+\item{checkred}{(Optional) (Internet needed) logical if the NEWEST package contains any specified statuses on CRAN check page. \code{pacs::checked_packages} is used to quickly retrieve all statuses at once.}
+\item{lifeduration}{(Optional) (Internet needed) integer number of days a package was released.}
 }
 }
 \description{
@@ -45,7 +47,7 @@ Optionally we could add life duration and CRAN check page status for each packag
 \note{
 Version.expected.min column not count packages which are not a dependency for any package, so could not be find in DESCRIPTION files.
 When turn on the \code{lifeduration} options, calculations might be time consuming.
-Results are cached for 1 hour with \code{memoise} package.
+Results are cached for 30 minutes with \code{memoise} package.
 \code{BioConductor} packages are tested only in available scope, \code{checkred} is not assessed for them.
 }
 \examples{

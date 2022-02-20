@@ -7,7 +7,7 @@
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
 #' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return list with names proper for DESCRIPTION file fields.
-#' @note Results are cached for 1 hour with `memoise` package.
+#' @note Results are cached for 30 minutes with `memoise` package.
 #' @export
 #' @examples
 #' \dontrun{
@@ -20,8 +20,8 @@ pac_description <- function(pac,
                             local = FALSE,
                             lib.loc = .libPaths(),
                             repos = "https://cran.rstudio.com/") {
-  stopifnot(isFALSE(local) ||
-    (isTRUE(local) && (is.null(version) || isTRUE(utils::packageDescription(pac)$Version == version))))
+  stopifnot((isFALSE(local)) ||
+    (isTRUE(local) && (is.null(version) || isTRUE(utils::packageDescription(pac, lib.loc = lib.loc)$Version == version))))
   stopifnot(all(c(is.null(version), is.null(at))) || xor(!is.null(version), !is.null(at)))
   stopifnot(is.null(at) || inherits(at, "Date"))
   stopifnot(length(pac) == 1 && is.character(pac))
@@ -30,18 +30,19 @@ pac_description <- function(pac,
 
   is_installed <- isTRUE(pac %in% rownames(installed_packages(lib.loc = lib.loc)))
 
+  # NOT INSTALLED AND (NOT IN REPO OR (VERSION HIGER THAN LAST)
   if (!is_installed && (!pac_isin(pac, repos) || (!is.null(version) && isTRUE(utils::compareVersion(version, pac_last(pac)) == 1)))) {
     return(structure(list(), package = pac, version = version))
   }
 
-  if ((local) && (is.null(version) || (!is.null(version) && isTRUE(utils::packageDescription(pac)$Version == version)))) {
+  if ((local) && (is.null(version) || (!is.null(version) && isTRUE(utils::packageDescription(pac, lib.loc = lib.loc)$Version == version)))) {
     if (!is_installed) {
       return(structure(list(), package = pac, version = version))
     }
     result <- utils::packageDescription(pac, lib.loc)
     return(structure(result, package = pac, version = result$version))
   } else {
-    result <- pac_description_dcf(pac, version, at)
+    result <- pac_description_dcf(pac, version, at, repos)
     if (length(result) == 0 && is_installed && is.null(version)) {
       result <- utils::packageDescription(pac, lib.loc)
       version <- result$Version
@@ -52,15 +53,16 @@ pac_description <- function(pac,
   }
 }
 
-pac_description_dcf_raw <- function(pac, version, at) {
+pac_description_dcf_raw <- function(pac, version, at, repos) {
   if (!is.null(at)) {
     tt <- pac_timemachine(pac, at = at)
+    if (isTRUE(is.na(tt))) return(NA)
     version <- utils::tail(tt[order(tt$LifeDuration), ], 1)$Version
   }
 
   ee <- tempfile()
 
-  last_version <- pac_last(pac)
+  last_version <- pac_last(pac, repos)
 
   if (is.null(version)) {
     version <- last_version
@@ -81,39 +83,7 @@ pac_description_dcf_raw <- function(pac, version, at) {
     silent = TRUE
   )
   if (inherits(tt, "try-error")) {
-    temp_tar <- tempfile(fileext = "tar.gz")
-    if (isTRUE(!is.null(version) && version != last_version)) {
-      base_url <- sprintf("https://cran.r-project.org/src/contrib/Archive/%s", pac)
-    } else {
-      base_url <- "https://cran.r-project.org/src/contrib"
-      version <- last_version
-    }
-    d_url <- sprintf(
-      "%s/%s_%s.tar.gz",
-      base_url,
-      pac,
-      version
-    )
-
-    download <- try(
-      {
-        suppressWarnings(utils::download.file(d_url,
-          destfile = temp_tar,
-          quiet = TRUE
-        ))
-      },
-      silent = TRUE
-    )
-
-    if (inherits(download, "try-error")) {
-      return(structure(list(), package = pac, version = version))
-    }
-
-    temp_dir <- tempdir(check = TRUE)
-    utils::untar(temp_tar, exdir = temp_dir)
-    # tabs are not acceptable
-    result <- as.list(read.dcf(file.path(temp_dir, pac, "DESCRIPTION"))[1, ])
-    unlink("temp_dir", recursive = TRUE)
+    result <- cran_archive_description(pac, version, repos)
   } else {
     result <- as.list(read.dcf(ee)[1, ])
     unlink(ee)
@@ -122,4 +92,44 @@ pac_description_dcf_raw <- function(pac, version, at) {
   structure(result, package = pac, version = version)
 }
 
-pac_description_dcf <- memoise::memoise(pac_description_dcf_raw, cache = cachem::cache_mem(max_age = 60 * 60))
+pac_description_dcf <- memoise::memoise(pac_description_dcf_raw, cache = cachem::cache_mem(max_age = 30 * 60))
+
+cran_archive_description <- function(pac, version, repos) {
+  last_version <- pac_last(pac, repos)
+
+  temp_tar <- tempfile(fileext = ".tar.gz")
+
+  if (isTRUE(!is.null(version) && version != last_version)) {
+    base_url <- sprintf("https://cran.r-project.org/src/contrib/Archive/%s", pac)
+  } else {
+    base_url <- "https://cran.r-project.org/src/contrib"
+    version <- last_version
+  }
+  d_url <- sprintf(
+    "%s/%s_%s.tar.gz",
+    base_url,
+    pac,
+    version
+  )
+
+  download <- try(
+    {
+      suppressWarnings(utils::download.file(d_url,
+                                            destfile = temp_tar,
+                                            quiet = TRUE
+      ))
+    },
+    silent = TRUE
+  )
+
+  if (inherits(download, "try-error")) {
+    result <- structure(list(), package = pac, version = version)
+  } else {
+    temp_dir <- tempdir()
+    utils::untar(temp_tar, exdir = temp_dir)
+    # tabs are not acceptable
+    result <- as.list(read.dcf(file.path(temp_dir, pac, "DESCRIPTION"))[1, ])
+  }
+  unlink(temp_tar)
+  result
+}
