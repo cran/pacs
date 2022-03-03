@@ -86,14 +86,8 @@ dir_size <- function(path = ".", recursive = TRUE) {
   size_files
 }
 
-is_online <- function(site = "https://example.com/") {
-  tryCatch(
-    {
-      suppressWarnings(readLines(site, n = 1, warn = FALSE))
-      TRUE
-    },
-    error = function(e) FALSE
-  )
+is_online <- function(site = "r-project.org") {
+  isTRUE(!is.null(curl::nslookup(site, error = FALSE)))
 }
 
 #' List of base R packages
@@ -251,18 +245,84 @@ available_agg_fun_raw <- function(repos, fields) {
 
 available_agg_fun <- memoise::memoise(available_agg_fun_raw, cache = cachem::cache_mem(max_age = 30 * 60))
 
-expand_dependency <- function(x) {
-  if (length(x) == 1) {
-    stopifnot(all(x %in% c("strong", "all", "most")))
-    switch(
-      x,
+expand_dependency <- function(fields) {
+  if (length(fields) == 1) {
+    stopifnot(all(fields %in% c("strong", "all", "most")))
+    switch(fields,
       strong = c("Depends", "Imports", "LinkingTo"),
       most = c("Depends", "Imports", "LinkingTo", "Suggests"),
-      all = c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances"),
-      c("Depends", "Imports", "LinkingTo")
+      all = c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")
     )
   } else {
-    stopifnot(all(x %in% c("Depends", "Imports", "Suggests", "LinkingTo", "Enhances")))
-    x
+    stopifnot(all(fields %in% c("Depends", "Imports", "Suggests", "LinkingTo", "Enhances")))
+    fields
   }
 }
+
+cran_archive_file <- function(pac, version, repos, file) {
+  last_version <- pac_last(pac, repos)
+
+  if (isTRUE(!is.null(version) && version != last_version)) {
+    base_url <- sprintf("https://cran.r-project.org/src/contrib/Archive/%s", pac)
+  } else {
+    base_url <- "https://cran.r-project.org/src/contrib"
+    version <- last_version
+  }
+
+  d_url <- sprintf(
+    "%s/%s_%s.tar.gz",
+    base_url,
+    pac,
+    version
+  )
+
+  temp_tar <- tempfile(fileext = ".tar.gz")
+
+  download <- try(
+    {
+      suppressWarnings(utils::download.file(d_url,
+        destfile = temp_tar,
+        quiet = TRUE
+      ))
+    },
+    silent = TRUE
+  )
+
+  if (inherits(download, "try-error")) {
+    result <- structure(list(), package = pac, version = version)
+  } else {
+    temp_dir <- tempdir()
+    utils::untar(temp_tar, exdir = temp_dir)
+    # tabs are not acceptable
+    result <- switch(file,
+      DESCRIPTION = as.list(read.dcf(file.path(temp_dir, pac, "DESCRIPTION"))[1, ]),
+      NAMESPACE = readLines(file.path(temp_dir, pac, "NAMESPACE"), warn = FALSE)
+    )
+  }
+  unlink(temp_tar)
+  result
+}
+
+read_html_table <- function(table_lines) {
+  rr_range <- grep("</?table[^>]*>", table_lines)
+  if (length(rr_range) != 2) {
+    return(NA)
+  }
+  rrr <- table_lines[(rr_range[1] + 1):(rr_range[2] - 1)]
+  rrr_all <- paste(rrr, collapse = "\n")
+  rrr_html <- read_html(rrr_all)
+  list(html = rrr_html, lines = rrr)
+}
+
+crandb_json_raw <- function(packages, limit = getOption("pacs.crandb_limit", 100)) {
+  if (!is_online()) NA
+  jsonlite::read_json(
+    sprintf(
+      'https://crandb.r-pkg.org/-/allall?keys=["%s"]&limit=%s',
+      paste(packages, collapse = '","'),
+      limit
+    )
+  )
+}
+
+crandb_json <- memoise::memoise(crandb_json_raw, cache = cachem::cache_mem(max_age = 30 * 60))

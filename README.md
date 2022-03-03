@@ -7,7 +7,9 @@
 
 **For more information please visit the package vignette: [Getting Started](https://polkas.github.io/pacs/articles/GettingStarted.html).**
 
-- Validating the library or packages.
+A set of tools that make life easier for developers and maintainers of R packages.
+
+- Validating the library, packages and `renv` lock files.
 - Exploring complexity of a certain package like evaluating its size in bytes with dependencies.
 - The shiny app complexity could be explored too.
 - Assessing life duration of a specific package version.
@@ -44,11 +46,13 @@ install.packages("pacs")
 |:------------------------------------|:-----------------------------------------------|
 |`lib_validate`                       | Validate the local library          |
 |`pac_validate`             | Validate a specific local package              |
+|`lock_validate`       | Validate a specific `renv` lock file  |
 |`pac_deps`               |  R CRAN package dependencies with installed or expected versions |
 |`pac_deps_timemachine`|  R CRAN package dependencies for certain version or time point|
 |`pac_description` | R CRAN package DESCRIPTION file at Date or for a certain version      |
 |`pac_namespace` | R CRAN package NAMESPACE file at Date or for a certain version      |
 |`pac_lifeduration` | Package version life duration  |
+|`pacs_lifeduration` | Packages versions life duration |
 |`pac_health`           | R CRAN package version health    |
 |`pac_timemachine` | R CRAN package versions at a specific Date or a Date interval   |
 |`pac_compare_versions` | Compare dependencies between different versions of a R CRAN package          |

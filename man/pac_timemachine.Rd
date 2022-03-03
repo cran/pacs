@@ -4,7 +4,14 @@
 \alias{pac_timemachine}
 \title{Package metadata for all releases}
 \usage{
-pac_timemachine(pac, at = NULL, from = NULL, to = NULL, version = NULL)
+pac_timemachine(
+  pac,
+  at = NULL,
+  from = NULL,
+  to = NULL,
+  version = NULL,
+  source = c("crandb", "cran")
+)
 }
 \arguments{
 \item{pac}{character a package name.}
@@ -16,6 +23,8 @@ pac_timemachine(pac, at = NULL, from = NULL, to = NULL, version = NULL)
 \item{to}{Date CRAN URL. Default: NULL}
 
 \item{version}{character version of package. Default: NULL}
+
+\item{source}{character one of \code{c("crandb", "cran")}. Using the \code{MEATCRAN} DB or the direct web page download from CRAN. Default: \code{"crandb"}}
 }
 \value{
 data.frame with 7 columns
@@ -25,7 +34,7 @@ data.frame with 7 columns
 \item{Released}{character release Date}
 \item{Archived}{character archived Date.}
 \item{LifeDuration}{\code{difftime} number of days the version was the newest one.}
-\item{URL}{character the suffix of the base URL to tar.gz file.}
+\item{URL}{character the suffix of the base URL to \code{tar.gz} file.}
 \item{Size}{character size of the \code{tar.gz} file.}
 }
 }
@@ -37,6 +46,8 @@ Function will scrap two CRAN URLS. Works only with CRAN packages.
 Please as a courtesy to the R CRAN, don't overload their servers by constantly using this function.
 The base part of URL in the result is \verb{https://cran.r-project.org/src/contrib/}.
 Results are cached for 30 minutes with \code{memoise} package.
+The \code{crandb} R packages database is a part of \code{METACRAN} project, source:
+Csárdi G, Salmon M (2022). \code{pkgsearch}: Search and Query CRAN R Packages. \verb{https://github.com/r-hub/pkgsearch}, \verb{https://r-hub.github.io/pkgsearch/}.
 }
 \examples{
 \dontrun{

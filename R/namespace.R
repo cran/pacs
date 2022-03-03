@@ -1,7 +1,7 @@
 #' package NAMESPACE file
 #' @description CRAN package NAMESPACE file taken locally or remotely from GITHUB CRAN mirror or CRAN website.
 #' @param pac character a package name.
-#' @param version character package version, By default the newest version in taken if failed tried to give local one if installed. Default: NULL
+#' @param version character package version, By default the is_installed version. Default: NULL
 #' @param at Date. Default: NULL
 #' @param local logical if to use local library. Default: FALSE
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
@@ -26,58 +26,52 @@ pac_namespace <- function(pac, version = NULL, at = NULL, local = FALSE, lib.loc
   stopifnot(is.null(version) || (length(version) == 1 && is.character(version)))
 
   is_installed <- isTRUE(pac %in% rownames(installed_packages(lib.loc = lib.loc)))
-
-  if (!is_installed && (isFALSE(pac_isin(pac, repos)) || (!is.null(version) && isTRUE(utils::compareVersion(version, pac_last(pac)) == 1)))) {
-    return(structure(list(), package = pac, version = version))
+  if ((!is_installed && local) || (!local && !is_online())) {
+    return(NA)
+  }
+  version_installed <- if (is_installed) {
+    pac_description(pac, local = TRUE)$Version
+  } else {
+    NA
   }
 
-  if ((local) && (is.null(version) || (!is.null(version) && isTRUE(is_installed && utils::packageDescription(pac, lib.loc = lib.loc)$Version == version)))) {
-    if (!is_installed) {
-      return(structure(list(), package = pac, version = version))
-    }
+  version_null <- is.null(version)
+
+  if (local && is_installed && is.null(at) && (version_null || isTRUE(utils::compareVersion(version, version_installed) == 0))) {
     namespace_lines <- readLines(system.file(package = pac, "NAMESPACE"), warn = FALSE)
     desc <- pac_description(pac, local = TRUE)
-    version <- desc$Version
-  } else {
-    namespace_lines <- pac_readnamespace(pac, version, at)
-    if (length(namespace_lines) == 0 && is_installed && is.null(version)) {
-      namespace_lines <- readLines(system.file(package = pac, "NAMESPACE"), warn = FALSE)
-      version <- pac_description(pac, local = TRUE, lib.loc = lib.loc)$Version
-    } else if (length(namespace_lines) == 0) {
-      version <- attr(namespace_lines, "version")
-      return(structure(list(), package = pac, version = version))
+  } else if (isTRUE(is_isin(pac, "https://cran.rstudio.com/"))) {
+    version <- if (!version_null) {
+      version
+    } else if (!is.null(at)) {
+      vv <- utils::tail(pac_timemachine(pac, at = at)$Version, 1)
+      if (isNA(vv) || is.null(vv)) {
+        return(NA)
+      }
+      vv
+    } else {
+      pac_last(pac, repos = repos)
     }
-  }
-
-  if (isTRUE(is.na(namespace_lines))) return(NA)
-
-  desc <- pacs::pac_description(pac = pac, version = version, at = at, lib.loc = lib.loc, repos = repos)
-  if (isFALSE(is.na(desc))) {
-    enc <- suppressWarnings(desc$Encoding)
-    if (is.null(enc) || is.na(enc)) enc <- "UTF-8"
+    namespace_lines <- pac_readnamespace(pac, version, repos)
+    desc <- pac_description(pac, version = version)
+    if (isTRUE(is.na(namespace_lines))) {
+      return(NA)
+    }
+    if (length(namespace_lines) == 0) {
+      return(NA)
+    }
   } else {
-    enc <- "UTF-8"
+    return(NA)
   }
-
+  enc <- desc$Encoding
+  if (is.null(enc) || isFALSE(enc %in% c("UTF-8", "latin1", "latin2"))) enc <- "UTF-8"
   result <- pac_parse_namespace(namespace_lines, enc)
 
   structure(result, package = pac, version = version)
 }
 
-pac_readnamespace_raw <- function(pac, version, at) {
-  if (!is.null(at)) {
-    tt <- pac_timemachine(pac, at = at)
-    if (isNA(tt)) return(NA)
-    version <- utils::tail(tt[order(tt$LifeDuration), ], 1)$Version
-  }
-
+pac_readnamespace_raw <- function(pac, version, repos = "https://cran.rstudio.com/") {
   ee <- tempfile()
-
-  last_version <- pac_last(pac)
-
-  if (is.null(version)) {
-    version <- last_version
-  }
 
   d_url <- sprintf(
     "https://raw.githubusercontent.com/cran/%s/%s/NAMESPACE",
@@ -94,39 +88,7 @@ pac_readnamespace_raw <- function(pac, version, at) {
     silent = TRUE
   )
   if (inherits(tt, "try-error")) {
-    temp_tar <- tempfile(fileext = "tar.gz")
-    if (isTRUE(!is.null(version) && version != last_version)) {
-      base_url <- sprintf("https://cran.r-project.org/src/contrib/Archive/%s", pac)
-    } else {
-      base_url <- "https://cran.r-project.org/src/contrib"
-      version <- last_version
-    }
-    d_url <- sprintf(
-      "%s/%s_%s.tar.gz",
-      base_url,
-      pac,
-      version
-    )
-
-    download <- try(
-      {
-        utils::download.file(d_url,
-          destfile = temp_tar,
-          quiet = TRUE
-        )
-      },
-      silent = TRUE
-    )
-
-    if (inherits(download, "try-error")) {
-      return(structure(list(), package = pac, version = version))
-    }
-
-    temp_dir <- tempdir(check = TRUE)
-    utils::untar(temp_tar, exdir = temp_dir)
-    # tabs are not acceptable
-    result <- readLines(file.path(temp_dir, pac, "NAMESPACE"), warn = FALSE)
-    unlink(temp_dir, recursive = TRUE)
+    result <- cran_archive_file(pac, version, repos, "NAMESPACE")
   } else {
     result <- readLines(ee, warn = FALSE)
     unlink(ee)

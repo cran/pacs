@@ -1,7 +1,7 @@
 #' package dependencies
 #' @description Package dependencies from DESCRIPTION files with installed or expected versions or newest released.
 #' @param pac character a package name.
-#' @param fields a character vector listing the types of dependencies, a subset of c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances").
+#' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
 #' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
 #' Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
@@ -12,7 +12,7 @@
 #' @param recursive logical If to assess the dependencies recursively. Default: TRUE
 #' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `pacs::biocran_repos()`
 #' @return data.frame with packages and their versions. Versions are taken from `installed.packages` or newest released.
-#' @note When function is invoked in the loop afterwards binded results could be aggregated like,
+#' @note When function is invoked in the loop afterwards results could be aggregated like,
 #' `stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)`.
 #' @export
 #' @examples
@@ -57,7 +57,9 @@ pac_deps <- function(pac,
 
     v_base <- installed_agg_fun(lib.loc, fields)
   } else {
-    if (isFALSE(pac_isin(pac, repos))) return(NA)
+    if (!is_online() || isFALSE(pac_isin(pac, repos))) {
+      return(NA)
+    }
     paks_global <- tools::package_dependencies(pac,
       db = available_packages(repos),
       which = fields,
@@ -120,7 +122,7 @@ pac_deps <- function(pac,
 #' The required dependencies have to be installed in the local repository.
 #' The default arguments setup is recommended.
 #' @param path path to the shiny app. Default: `"."`
-#' @param fields a character vector listing the types of dependencies, a subset of c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances").
+#' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
 #' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
 #' Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
@@ -163,7 +165,9 @@ app_deps <- function(path = ".",
   }
   if (recursive) {
     app_deps_all <- lapply(app_deps, function(x) pac_deps(x, repos = repos, lib.loc = lib.loc, local = local, fields = fields, description_v = description_v, attr = FALSE))
-    if (any(is.na(app_deps_all))) return(NA)
+    if (any(is.na(app_deps_all))) {
+      return(NA)
+    }
     app_deps_recursive <- do.call(rbind, app_deps_all)
     app_deps_recursive <- stats::aggregate(app_deps_recursive[, c("Version"), drop = FALSE], list(Package = app_deps_recursive$Package), pacs::compareVersionsMax)
     app_deps_recursive$Package <- as.character(app_deps_recursive$Package)

@@ -1,3 +1,11 @@
+# pacs 0.4.3
+
+* added an additional source for getting all releases of packages, the `metacran` db (new default).
+* added a new validation function, `lock_validate`. It helps to validate a `renv` lock file.
+* more efficient check of the Internet connection with the `curl` package.
+* more elegant separation of the code.
+* more testthat tests, `mockery`.
+
 # pacs 0.4.2
 
 * fix one of the validation of the `lib_validate` function.

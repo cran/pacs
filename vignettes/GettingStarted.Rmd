@@ -28,6 +28,18 @@ library(withr)
 library(remotes)
 ```
 
+A set of tools that make life easier for developers and maintainers of R packages.
+
+- Validating the library, packages and `renv` lock files.
+- Exploring complexity of a certain package like evaluating its size in bytes with dependencies.
+- The shiny app complexity could be explored too.
+- Assessing life duration of a specific package version.
+- Checking a CRAN package check page status for any errors and warnings.
+- Retrieving a DESCRIPTION or NAMESPACE file for any package version.
+- Comparing DESCRIPTION or NAMESPACE files between different package versions.
+- Getting a list of all releases for a specific package.
+- The Bioconductor is partly supported.
+
 ## Hints
 
 **Hint0**: An Internet connection is required to take full advantage of most of the features.
@@ -101,7 +113,7 @@ nrow(red)
 head(red)
 ```
 
-Packages which are not a dependency (default Depends/Imports/LinkingTo) of any other package:
+Packages which are not a dependency (default `c("Depends", "Imports", "LinkingTo")`) of any other package:
 
 ```r
 lib[is.na(lib$Version.expected.min), ]
@@ -119,7 +131,7 @@ Not newest packages:
 lib[(!is.na(lib$newest)) & (lib$newest == FALSE), ]
 ```
 
-### Core idea behinde lib_validate
+### Core idea behind lib_validate
 
 The core idea behind the function is coming from proper processing of the `installed.packages` function result.
 
@@ -149,7 +161,7 @@ merge(
 )
 ```
 
-### renv
+### renv library
 
 When a project is based on `renv` and all needed dependencies are installed in the `renv` directory then we mostly want to validate only the isolated `renv` library.
 In the new `renv` versions the `.libPaths()` contains the main library path too (`renv` library and the main library).
@@ -160,7 +172,28 @@ Please remember to limit the library path when using `pacs::lib_validate`, to li
 pacs::lib_validate(lib.loc = .libPaths()[1])
 ```
 
-Warning, at least `rsconnect` (and its `packrat` connected dependencies) related packages could still not be in the `renv` library.  
+Warning, at least `rsconnect` (and its `packrat` connected dependencies) related packages could still not be in the `renv` library. 
+
+### renv lock file
+
+There is a way to validate the `renv` lock file in the same way the local library or packages are validated.
+
+```r
+# a path or url
+url <- "https://raw.githubusercontent.com/Polkas/pacs/master/tests/testthat/files/renv_test.lock"
+pacs::lock_validate(url)
+
+pacs::lock_validate(
+  url,
+  checkred = list(scope = c("ERROR", "FAIL"), flavors = NULL)
+)
+
+pacs::lock_validate(
+  url,
+  lifeduration = TRUE,
+  checkred = list(scope = c("ERROR", "FAIL"), flavors = NULL)
+)
+```
 
 ### R CRAN packages check page statuses
 
@@ -276,12 +309,11 @@ The `field` argument is used to change the scope of exploration.
 The `field` argument is equal to `c("Depends", "Imports", "LinkingTo")` by default as these are the dependencies installed when the `install.packages` function is used.
 When the `field` argument is extended the number of dependencies will grow.
 Remember that we are looking for dependencies recursively by default.
-At the moment of writing it the first invoke returns 3 dependencies whereas the second one 1746 and the last one 1795. It should be clear that when extending the scope (and recursively) with the `"Suggests"` field then the number of dependencies is exploding.
+At the moment of writing it the first invoke returns 3 dependencies whereas the second over an one thousand. It should be clear that when extending the scope (and recursively) with the `"Suggests"` field then the number of dependencies is exploding.
 
 ```r
 nrow(pacs::pac_deps("memoise", fields = c("Depends", "Imports", "LinkingTo")))
 nrow(pacs::pac_deps("memoise", fields = c("Depends", "Imports", "LinkingTo", "Suggests")))
-nrow(pacs::pac_deps("memoise", fields = c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")))
 ```
 
 For a certain version, might take some time.
@@ -310,7 +342,7 @@ pacs::pac_namespace("dplyr", version = "0.8.0")
 pacs::pac_namespace("dplyr", at = as.Date("2019-01-01"))
 ```
 
-## Comapre different package versions
+## Compare different package versions
 
 ### Comparing DESCRIPTION files between different package versions
 

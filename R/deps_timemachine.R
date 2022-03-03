@@ -1,7 +1,7 @@
 #' R CRAN package dependencies for a certain version or time point
 #' @description Package dependencies from DESCRIPTION files retrieved recursively for certain version or time point.
 #' @param pac character a package name.
-#' @param fields a character vector listing the types of dependencies, a subset of c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances").
+#' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
 #' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
 #' Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param version character version of package. Default: NULL
@@ -25,17 +25,18 @@ pac_deps_timemachine <- function(pac,
   stopifnot(xor(!is.null(version), !is.null(at)))
   stopifnot(is.logical(recursive))
   stopifnot(is.null(version) || (length(version) == 1 && is.character(version)))
+  if (!is_online()) {
+    return(NA)
+  }
+
+  if (!pac_isin(pac, "https://cran.rstudio.com/")) {
+    return(NA)
+  }
 
   if (is.null(version)) {
-    health <- pac_health(pac, at = at)
-    if (isTRUE(is.na(health))) return(NA)
-    if (isFALSE(health)) stop("not healthy version, live less than 14 days.")
     pac_d <- pac_description(pac, at = at, local = FALSE)
     pac_v <- pac_d$Version
   } else {
-    health <- pac_health(pac, version = version)
-    if (isTRUE(is.na(health))) return(NA)
-    if (!isTRUE(health)) stop("not healthy version, live less than 14 days.")
     pac_d <- pac_description(pac, version = version, local = FALSE)
     pac_v <- pac_d$Version
     at <- as.Date(pac_timemachine(pac, version = pac_v)$Released) + 1

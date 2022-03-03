@@ -27,8 +27,29 @@ test_that("pacs::lib_validate online", {
   expect_true(sum(lib_res_s2$checkred, na.rm = TRUE) >= sum(lib_res_s1$checkred, na.rm = TRUE))
 })
 
+test_that("pacs::lock_validate", {
+  expect_error(suppressWarnings(lock_validate(path = "files/wrong.lock")))
+  expect_error(lock_validate(path = "files/renv_test.lock", checkred = "STH"))
+  expect_error(lock_validate(path = "files/renv_test.lock", checkred = list(scope = "ERROR"), lifeduration = "None"))
+})
+
+test_that("pacs::lock_validate", {
+  skip_if_offline()
+  expect_true(is.data.frame(lock_validate(path = "files/renv_test.lock")))
+  expect_true(is.data.frame(lock_validate(path = "files/renv_test.lock", checkred = list(scope = "ERROR"), lifeduration = TRUE)))
+})
+
+test_that("lib_validate lifedurations", {
+  skip_if(nrow(installed_packages(lib.loc = .libPaths())) > getOption("pacs.crandb_limit", 100))
+  skip_if_offline()
+  lib_res <- lib_validate(lifeduration = TRUE)
+  expect_true(inherits(lib_res, "data.frame"))
+  expect_true(all(is.na(lib_res$lifeduration) | (lib_res$lifeduration >= 0)))
+})
+
 test_that("pacs::pac_validate", {
   skip_if_offline()
+  skip_if(isNA(checked_packages()))
   expect_true(nrow(pac_validate("stats")) == 0)
   pac_valid_full <- pac_validate("memoise",
     lifeduration = TRUE,
@@ -37,44 +58,54 @@ test_that("pacs::pac_validate", {
   expect_true(inherits(pac_valid_full, "data.frame"))
 })
 
-test_that("pacs::pac_lifeduration", {
+test_that("offline validate", {
+  pac_validate_offline <- pac_validate
+  mockery::stub(pac_validate_offline, "is_online", FALSE)
+  expect_warning(pac_validate_offline("memoise"), "There is no Internet connection")
+
+  lib_validate_offline <- lib_validate
+  mockery::stub(lib_validate_offline, "is_online", FALSE)
+  expect_warning(lib_validate_offline(), "There is no Internet connection")
+
+  lock_validate_offline <- lock_validate
+  mockery::stub(lock_validate_offline, "is_online", FALSE)
+  expect_warning(lock_validate_offline("files/renv_test.lock"), "There is no Internet connection.")
+})
+
+test_that("lock_validate skip crandb if the limit is exceeded", {
   skip_if_offline()
-  expect_true(is.na(pac_lifeduration("WRONGPACKAGE")))
-  expect_error(pac_lifeduration("dplyr", version = 1))
-  expect_true(pac_lifeduration("memoise") > 0)
+  expect_warning(withr::with_options(list(pacs.crandb_limit = 1), {
+    lock_validate("files/renv_test.lock")
+  }), "There is more packages than crandb limit of 1")
+  expect_message(suppressWarnings(withr::with_options(list(pacs.crandb_limit = 1), {
+    lock_validate("files/renv_test.lock", lifeduration = TRUE)
+  })), "Please wait, Packages life")
+  expect_warning(suppressMessages(withr::with_options(list(pacs.crandb_limit = 1), {
+    lock_validate("files/renv_test.lock", lifeduration = TRUE)
+  })), "There is more packages than crandb limit of 1.")
 })
 
-test_that("pacs::pac_lifeduration online", {
+test_that("lock_validate lifedurations to many packages for crandb", {
   skip_if_offline()
-  a <- pac_lifeduration("dplyr", version = "0.8.0")
-  b <- pac_lifeduration("dplyr", at = as.Date("2019-02-14"))
-  expect_true(a == 1)
-  expect_identical(a, b)
-  expect_true(is.na(pac_lifeduration("edgeR")) || inherits(pac_lifeduration("edgeR"), "difftimes"))
+  expect_message(suppressWarnings(withr::with_options(list(pacs.crandb_limit = 1), {
+    lock_validate("files/renv_test.lock", lifeduration = TRUE)
+  })), "Please wait, Packages life durations")
 })
 
-test_that("pacs::pac_health", {
-  expect_true(is.logical(pac_health("stats")))
-  expect_true(is.na(pac_health("WRONG")))
-  expect_true(is.na(pac_health("dplyr", "0.0.0.1")))
+test_that("pacs::lib_validate offline", {
+  lib_validate_offline <- lib_validate
+  mockery::stub(lib_validate_offline, "is_online", FALSE)
+  expect_true(ncol(suppressWarnings(lib_validate_offline())) == 4)
 })
 
-test_that("pacs::pac_health online", {
-  skip_if_offline()
-  expect_true(is.logical(pac_health("dplyr")))
-  expect_true(is.logical(pac_health("dplyr", scope = c("ERROR"))))
-  expect_true(isFALSE(pac_health("dplyr", version = "0.8.0")) ||
-                isNA(pac_health("dplyr", version = "0.8.0")))
-  expect_true(isFALSE(pac_health("dplyr", at = as.Date("2019-02-14"))) ||
-                isNA(pac_health("dplyr", at = as.Date("2019-02-14"))))
+test_that("pacs::pac_validate offline", {
+  pac_validate_offline <- pac_validate
+  mockery::stub(pac_validate_offline, "is_online", FALSE)
+  expect_true(ncol(suppressWarnings(pac_validate_offline("memoise"))) == 5)
 })
 
-test_that("pacs::pac_checkred", {
-  expect_error(pac_checkred("dplyr", scope = ""))
-})
-
-test_that("pacs::pac_checkred online", {
-  skip_if_offline()
-  expect_true(is.logical(pac_checkred("dplyr")))
-  expect_true(is.na(pac_checkred("WRONG")))
+test_that("pacs::lock_validate offline", {
+  lock_validate_offline <- lock_validate
+  mockery::stub(lock_validate_offline, "is_online", FALSE)
+  expect_true(ncol(suppressWarnings(lock_validate_offline("files/renv_test.lock"))) == 2)
 })

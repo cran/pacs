@@ -84,8 +84,15 @@ test_that("pacs::pac_deps recursive long field", {
 
 test_that("pacs::pac_deps_timemachine", {
   skip_if_offline()
+  expect_identical(pac_deps_timemachine("WRONG", "0.8.0"), NA)
   expect_true(length(pac_deps_timemachine("memoise", "0.2.1")) == 1)
   expect_true(length(pac_deps_timemachine("memoise", at = as.Date("2019-01-01"))) == 1)
+})
+
+test_that("pacs::pac_deps_timemachine offline", {
+  pac_deps_timemachine_offline <- pac_deps_timemachine
+  mockery::stub(pac_deps_timemachine_offline, "is_online", FALSE)
+  expect_identical(pac_deps_timemachine_offline("dplyr", "0.8.0"), NA)
 })
 
 test_that("pacs::app_deps", {
@@ -94,6 +101,6 @@ test_that("pacs::app_deps", {
   expect_true(rec_deps > 0)
   expect_true(direct_deps > 0)
   expect_true(rec_deps >= direct_deps)
-  expect_error(pacs::app_deps("WRONG"))
-  expect_error(pacs::app_deps("files/shiny_app", 12))
+  expect_error(app_deps("WRONG"))
+  expect_error(app_deps("files/shiny_app", 12))
 })
