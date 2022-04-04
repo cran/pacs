@@ -7,22 +7,22 @@
 #' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
 #' Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lib.loc character vector. Default: `.libPaths()`
-#' @param repos character the base URL of the CRAN repository to use. Default "https://cran.rstudio.org"
+#' @param repos character vector URLs of the repositories to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return data.frame with 4 columns.
 #' \describe{
 #' \item{Package}{character package names.}
 #' \item{Version.OLD}{character versions of dependencies required by an old package version.}
 #' \item{Version.NEW}{character versions of dependencies required by a new package version.}
 #' \item{version_status}{ numeric -1/0/1 which comes from `utils::compareVersion` function.
-#' 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
+#' 0 means that both versions have the same requirement. -1 means that the new version remove this requirement. 1 means that the new version added a new requirement.}
 #' }
 #' @export
 #' @examples
 #' \dontrun{
-#' pac_compare_versions("memoise", "0.2.1", "2.0.0")
-#' pac_compare_versions("memoise", "0.2.1")
+#' pacs::pac_compare_versions("memoise", "0.2.1", "2.0.0")
+#' pacs::pac_compare_versions("memoise", "0.2.1")
 #' # local version to newest one
-#' pac_compare_versions("memoise")
+#' pacs::pac_compare_versions("memoise")
 #' }
 pac_compare_versions <- function(pac,
                                  old = NULL,
@@ -88,15 +88,15 @@ pac_compare_versions <- function(pac,
 #' @param old character an old version of package.
 #' @param new character a new version of package.
 #' @param lib.loc character vector. Default:
-#' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
+#' @param repos character vector URLs of the repositories to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return list with `c("imports", "exports", "exportPatterns", "importClasses", "importMethods", "exportClasses", "exportMethods", "exportClassPatterns", "dynlibs", "S3methods")` slots, and added and removed ones for each of them.
 #' @export
 #' @examples
 #' \dontrun{
-#' pac_compare_namespace("shiny", "1.0.0", "1.6.0")
-#' pac_compare_namespace("shiny", "1.0.0", "1.6.0")$exports
+#' pacs::pac_compare_namespace("shiny", "1.0.0", "1.6.0")
+#' pacs::pac_compare_namespace("shiny", "1.0.0", "1.6.0")$exports
 #' # local version to newest one
-#' pac_compare_namespace("shiny")
+#' pacs::pac_compare_namespace("shiny")
 #' }
 pac_compare_namespace <- function(pac,
                                   old = NULL,

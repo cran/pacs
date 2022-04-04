@@ -1,5 +1,5 @@
 ---
-title: "Supplementary Tools for R Packages Developers"
+title: "Walk-through `pacs`"
 output:
     rmarkdown::html_document:
         theme: "spacelab"
@@ -7,7 +7,7 @@ output:
         toc: true
         toc_float: true
 vignette: >
-    %\VignetteIndexEntry{Supplementary Tools for R Packages Developers}
+    %\VignetteIndexEntry{Walk-through `pacs`}
     %\VignetteEngine{knitr::rmarkdown}
     %\VignetteEncoding{UTF-8}
 editor_options:
@@ -39,6 +39,8 @@ A set of tools that make life easier for developers and maintainers of R package
 - Comparing DESCRIPTION or NAMESPACE files between different package versions.
 - Getting a list of all releases for a specific package.
 - The Bioconductor is partly supported.
+
+[**Functions Reference**](https://polkas.github.io/pacs/reference/index.html)
 
 ## Hints
 
@@ -236,10 +238,11 @@ pacs::pac_health("dplyr", limit = 14, scope = c("ERROR", "FAIL", "WARN"),
 `withr` package is recommended for the isolated download process.  
 We could use a temporary library path (`withr::with_temp_libpaths`) to check if the process is as expected.
 
-Checking what packages need to be installed/(optionally updated) parallel with a specific package, with `remotes` package.
+Checking what packages need to be installed/(optionally updated) parallel with a specific package, with `remotes` package. The full list even with packages which are already installed could be get with `pacs::pac_deps_user`.
 
 ```r
 remotes::package_deps("keras")
+pacs::pac_deps_user("pacs")
 ```
 
 Isolated download of a package and the validation.
@@ -299,10 +302,14 @@ Remote (newest CRAN) package dependencies with versions.
 pacs::pac_deps("shiny", local = FALSE)
 ```
 
-Raw dependencies from DESCRIPTION file
+Raw dependencies from DESCRIPTION file.
+The same which is needed by the the `install.packages` function. **Depends**/**Imports**/**LinkingTo** DESCRIPTION fields dependencies, recursively. 
+`pacs::pac_deps_user` could be used to check them.
 
 ```r
-pacs::pac_deps("memoise", description_v = TRUE, recursive = FALSE)
+pacs::pac_deps("memoise", description_v = TRUE, recursive = FALSE, local = FALSE)
+# or
+pacs::pac_deps_user("memoise")
 ```
 
 The `field` argument is used to change the scope of exploration.
@@ -316,7 +323,16 @@ nrow(pacs::pac_deps("memoise", fields = c("Depends", "Imports", "LinkingTo")))
 nrow(pacs::pac_deps("memoise", fields = c("Depends", "Imports", "LinkingTo", "Suggests")))
 ```
 
-For a certain version, might take some time.
+The developer dependencies are the ones needed when e.g. `R CMD check` is run.
+These are **Depends**/**Imports**/**LinkingTo**/**Suggests** DESCRIPTION fields dependencies, and for them **Depends**/**Imports**/**LinkingTo** recursively.
+`pacs::pac_deps_dev` could be used to check them.
+Obviously the list is much longer as the one for `pacs::pac_deps_user`.
+
+```r
+pac_deps_dev("memoise")
+```
+
+For a certain version (archived), might take some time.
 
 ```r
 pacs::pac_deps_timemachine("dplyr", version = "0.8.1")
@@ -382,7 +398,7 @@ pacs::pac_compare_namespace("shiny", "1.0.0", "1.5.0")$exports
 pacs::pac_compare_namespace("shiny", "1.0.0")
 ```
 
-## Package Weight Case Study: `devtools`
+## Package size 
 
 Take into account that packages sizes are appropriate for your local system (`Sys.info()`).
 Installation with `install.packages` and some `devtools` functions might result in different packages sizes.
@@ -399,7 +415,6 @@ Installation in your main library.
 ```r
 # if not have
 install.packages("devtools")
-install.packages("shiny")
 ```
 
 Size of the `devtools` package:
@@ -419,15 +434,9 @@ A reasonable assumption might be to count only dependencies which are not used b
 Then we could use `exclude_joint` argument to limit them.
 However hard to assume if your local installation is a reasonable proxy for an average user.
 
-```
+```r
 # exclude packages if at least one other package use it too
 cat(pacs::pac_true_size("devtools", exclude_joint = 1L) / 10**6, "MB", "\n")
-```
-
-Might be useful to check the number of dependencies too:
-
-```r
-pacs::pac_deps("devtools", local = TRUE)$Package
 ```
 
 ## The shiny app utils

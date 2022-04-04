@@ -31,19 +31,19 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' lib_validate()
-#' lib_validate(checkred = list(scope = c("ERROR", "FAIL", "WARN")))
-#' lib_validate(checkred = list(
+#' pacs::lib_validate()
+#' pacs::lib_validate(checkred = list(scope = c("ERROR", "FAIL", "WARN")))
+#' pacs::lib_validate(checkred = list(
 #'   scope = c("ERROR", "FAIL"),
 #'   flavors = cran_flavors()$Flavor[1:2]
 #' ))
 #' # activate lifeduration argument, could be time consuming for bigger libraries.
-#' lib_validate(
+#' pacs::lib_validate(
 #'   lifeduration = TRUE,
 #'   checkred = list(scope = c("ERROR", "FAIL"))
 #' )
 #' # only R CRAN repository
-#' lib_validate(repos = "https://cran.rstudio.com/")
+#' pacs::lib_validate(repos = "https://cran.rstudio.com/")
 #' }
 lib_validate <- function(lib.loc = .libPaths(),
                          fields = c("Depends", "Imports", "LinkingTo"),
@@ -102,7 +102,7 @@ lib_validate <- function(lib.loc = .libPaths(),
 #' Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lifeduration logical if to assess life duration for each package in the library. `MEATCRAN CRANDB` is used for less than 500 packages. The direct web page download from CRAN or local evaluation for newest packages otherwise. Default: FALSE
 #' @param checkred list with two named fields, `scope` and `flavor`. `scope` of R CRAN check pages statuses to consider, any of `c("ERROR", "FAIL", "WARN", "NOTE")`. `flavor` vector of machines to consider, which might be retrieved with `pacs::cran_flavors()$Flavor`. By default an empty scope field deactivated assessment for `checkred` column, and NULL flavor will results in checking all machines. Default `list(scope = character(0), flavor = NULL)`
-#' @param repos character vector base URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
+#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
 #' @return data.frame with 5/7/8/9 columns.
 #' \describe{
 #' \item{Package}{character a package name.}
@@ -125,8 +125,9 @@ lib_validate <- function(lib.loc = .libPaths(),
 #' @export
 #' @examples
 #' \dontrun{
-#' pac_validate("memoise")
-#' pac_validate("memoise",
+#' pacs::pac_validate("memoise")
+#' pacs::pac_validate(
+#'   "memoise",
 #'   lifeduration = TRUE,
 #'   checkred = list(scope = c("ERROR", "FAIL"), flavors = NULL)
 #' )
@@ -209,7 +210,7 @@ pac_validate <- function(pac,
 #' \dontrun{
 #' # path or url
 #' url <- "https://raw.githubusercontent.com/Polkas/pacs/master/tests/testthat/files/renv_test.lock"
-#' lock_validate(url)
+#' pacs::lock_validate(url)
 #'
 #' pacs::lock_validate(
 #'   url,
@@ -243,7 +244,7 @@ lock_validate <- function(path,
   result_renv <- rbind(result_renv, data.frame(Package = "R", Version = Rv, stringsAsFactors = FALSE))
   rownames(result_renv) <- NULL
 
-  crandb_limit_ok <- nrow(installed_packages(lib.loc = lib.loc)) <= getOption("pacs.crandb_limit", 100)
+  crandb_limit_ok <- length(pacs_n) <= getOption("pacs.crandb_limit", 100)
 
   if (is_online()) {
     if (crandb_limit_ok) {

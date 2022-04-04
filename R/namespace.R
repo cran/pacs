@@ -5,16 +5,16 @@
 #' @param at Date. Default: NULL
 #' @param local logical if to use local library. Default: FALSE
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
-#' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
+#' @param repos character vector URLs of the repositories to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return list with names proper for NAMESPACE file, the same as format as returned by `base::parseNamespaceFile`.
 #' @note Results are cached for 30 minutes with `memoise` package.
 #' This function is mainly built under source code from `base::parseNamespaceFile`.
 #' @export
 #' @examples
 #' \dontrun{
-#' pac_namespace("dplyr", version = "0.8.0")
-#' pac_namespace("dplyr", at = as.Date("2019-02-01"))
-#' pac_namespace("memoise", local = TRUE)
+#' pacs::pac_namespace("dplyr", version = "0.8.0")
+#' pacs::pac_namespace("dplyr", at = as.Date("2019-02-01"))
+#' pacs::pac_namespace("memoise", local = TRUE)
 #' }
 pac_namespace <- function(pac, version = NULL, at = NULL, local = FALSE, lib.loc = .libPaths(), repos = "https://cran.rstudio.com/") {
   stopifnot((isFALSE(local)) ||

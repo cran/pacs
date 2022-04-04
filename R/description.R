@@ -5,14 +5,14 @@
 #' @param at Date. Default: NULL
 #' @param local logical if to use local library. Default: FALSE
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
-#' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `https://cran.rstudio.com/`
+#' @param repos character vector URLs of the repositories to use. Used only for the validation. Default `https://cran.rstudio.com/`
 #' @return list with names proper for DESCRIPTION file fields.
 #' @note Results are cached for 30 minutes with `memoise` package.
 #' @export
 #' @examples
 #' \dontrun{
-#' pac_description("dplyr", version = "0.8.0")
-#' pac_description("dplyr", at = as.Date("2019-02-01"))
+#'   pacs::pac_description("dplyr", version = "0.8.0")
+#'   pacs::pac_description("dplyr", at = as.Date("2019-02-01"))
 #' }
 pac_description <- function(pac,
                             version = NULL,

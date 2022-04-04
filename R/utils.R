@@ -86,8 +86,8 @@ dir_size <- function(path = ".", recursive = TRUE) {
   size_files
 }
 
-is_online <- function(site = "r-project.org") {
-  isTRUE(!is.null(curl::nslookup(site, error = FALSE)))
+is_online <- function() {
+  curl::has_internet()
 }
 
 #' List of base R packages
@@ -119,11 +119,11 @@ pacs_base_all <- memoise::memoise(pacs_base_all_raw)
 installed_descriptions <- function(lib.loc, fields, deps = NULL) {
   installed_agg <- installed_agg_fun(lib.loc, fields)
 
-  paks <- installed_agg[, fields]
+  paks <- installed_agg[, fields, drop = FALSE]
 
   if (!is.null(deps)) {
     nams <- installed_agg[, c("Package")]
-    paks <- paks[nams %in% deps, ]
+    paks <- paks[nams %in% deps, , drop = FALSE]
   }
 
   joint_cols <- apply(paks, 1, function(x) paste(x, collapse = ","))
@@ -164,7 +164,8 @@ installed_agg_fun <- memoise::memoise(installed_agg_fun_raw, cache = cachem::cac
 
 #' List Available Packages at CRAN-like Repositories
 #' @description available_packages returns a matrix of details corresponding to packages currently available at one or more repositories. The current list of packages is downloaded over the internet (or copied from a local mirror).
-#' @param repos character vector, the base URL(s) of the repositories to use. Default `pacs::biocran_repos()`
+#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
+#' @keywords internal
 available_packages <- function(repos) {
   tryCatch(available_packages_raw(repos = repos), error = function(e) NA)
 }
@@ -178,7 +179,7 @@ installed_packages <- function(lib.loc, priority = NULL) {
 installed_packages_raw <- memoise::memoise(utils::installed.packages, cache = cachem::cache_mem(max_age = 30 * 60))
 
 extract_deps <- function(x) {
-  splited <- stri_split_fixed(x, ",")
+  splited <- stri_split_fixed(x, ",", )
   trimed <- lapply(splited, stri_trim)
   v_reg <- function(x) {
     vapply(
@@ -202,11 +203,11 @@ extract_deps <- function(x) {
 available_descriptions <- function(repos, fields, deps = NULL) {
   available_agg <- available_agg_fun(repos, fields)
 
-  paks <- available_agg[, fields]
+  paks <- available_agg[, fields, drop = FALSE]
 
   if (!is.null(deps)) {
     nams <- available_agg[, c("Package")]
-    paks <- paks[nams %in% deps, ]
+    paks <- paks[nams %in% deps, , drop = FALSE]
   }
 
   joint_cols <- apply(paks, 1, function(x) paste(x, collapse = ","))
@@ -217,8 +218,8 @@ available_descriptions <- function(repos, fields, deps = NULL) {
   versions <- desc_e$versions
 
   joint <- data.frame(
-    Version = unlist(sapply(seq_along(packages), function(x) replaceNA(versions[[x]], ""))),
-    Package = unlist(sapply(seq_along(packages), function(x) replace(packages[[x]], packages[[x]] == "NA", NA))),
+    Version = unlist(lapply(seq_along(packages), function(x) replaceNA(versions[[x]], ""))),
+    Package = unlist(lapply(seq_along(packages), function(x) replace(packages[[x]], packages[[x]] == "NA", NA))),
     stringsAsFactors = FALSE
   )
 
@@ -246,8 +247,7 @@ available_agg_fun_raw <- function(repos, fields) {
 available_agg_fun <- memoise::memoise(available_agg_fun_raw, cache = cachem::cache_mem(max_age = 30 * 60))
 
 expand_dependency <- function(fields) {
-  if (length(fields) == 1) {
-    stopifnot(all(fields %in% c("strong", "all", "most")))
+  if (length(fields) == 1 && fields %in% c("strong", "all", "most")) {
     switch(fields,
       strong = c("Depends", "Imports", "LinkingTo"),
       most = c("Depends", "Imports", "LinkingTo", "Suggests"),

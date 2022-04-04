@@ -9,6 +9,7 @@ app_deps(
   fields = c("Depends", "Imports", "LinkingTo"),
   lib.loc = .libPaths(),
   local = TRUE,
+  base = FALSE,
   description_v = FALSE,
   recursive = TRUE,
   repos = biocran_repos()
@@ -25,11 +26,13 @@ Default: \code{c("Depends", "Imports", "LinkingTo")}}
 
 \item{local}{logical if to use local repository or newest CRAN packages, where by default local packages are used. Default: TRUE}
 
+\item{base}{logical if to add base packages too. If \code{TRUE} then \code{pacs::pacs_base()} are taken into account. Default: FALSE}
+
 \item{description_v}{if the dependencies version should be taken from description files, minimal required. By default installed versions are taken. Default: FALSE}
 
 \item{recursive}{logical if to assess the dependencies recursively. Default: TRUE}
 
-\item{repos}{character the base URL of the CRAN repository to use. Used only for the validation. Default \code{pacs::biocran_repos()}}
+\item{repos}{character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default \code{pacs::biocran_repos()}}
 }
 \value{
 character vector with dependency packages or data.frame when checking recursively.
@@ -41,10 +44,11 @@ The required dependencies have to be installed in the local repository.
 The default arguments setup is recommended.
 }
 \note{
-the base packages are not taken into account.
+\code{renv} package has to be installed.
 }
 \examples{
 \dontrun{
+library(renv)
 # Please update the path to the custom shiny app
 app_path <- system.file("examples/04_mpg", package = "shiny")
 pacs::app_deps(app_path)

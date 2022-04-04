@@ -21,7 +21,7 @@ pac_compare_namespace(
 
 \item{lib.loc}{character vector. Default:}
 
-\item{repos}{character the base URL of the CRAN repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character vector URLs of the repositories to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 list with \code{c("imports", "exports", "exportPatterns", "importClasses", "importMethods", "exportClasses", "exportMethods", "exportClassPatterns", "dynlibs", "S3methods")} slots, and added and removed ones for each of them.
@@ -31,9 +31,9 @@ using the remote github CRAN mirror to compare NAMESPACE exports between specifi
 }
 \examples{
 \dontrun{
-pac_compare_namespace("shiny", "1.0.0", "1.6.0")
-pac_compare_namespace("shiny", "1.0.0", "1.6.0")$exports
+pacs::pac_compare_namespace("shiny", "1.0.0", "1.6.0")
+pacs::pac_compare_namespace("shiny", "1.0.0", "1.6.0")$exports
 # local version to newest one
-pac_compare_namespace("shiny")
+pacs::pac_compare_namespace("shiny")
 }
 }

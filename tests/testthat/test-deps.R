@@ -96,11 +96,37 @@ test_that("pacs::pac_deps_timemachine offline", {
 })
 
 test_that("pacs::app_deps", {
+  skip_if_offline()
   rec_deps <- nrow(pacs::app_deps("files/shiny_app"))
   direct_deps <- nrow(pacs::app_deps("files/shiny_app", recursive = FALSE))
   expect_true(rec_deps > 0)
   expect_true(direct_deps > 0)
   expect_true(rec_deps >= direct_deps)
-  expect_error(app_deps("WRONG"))
-  expect_error(app_deps("files/shiny_app", 12))
+  expect_error(pacs::app_deps("WRONG"))
+  expect_error(pacs::app_deps("files/shiny_app", 12))
+})
+
+test_that("pac_deps_user", {
+  skip_if_offline()
+  pp <- pacs::pac_deps_user("memoise", base = FALSE, attr = FALSE, repos = "https://cran.rstudio.com/")$Package
+  rr <- remotes:::find_deps("memoise",
+                            available = pacs:::available_packages(repos = "https://cran.rstudio.com/"),
+                            top_dep = NA)
+  rrr <- setdiff(rr, pacs::pacs_base())
+  expect_identical(sort(pp), sort(rrr))
+
+  expect_true(isNA(pac_deps_user("WRONG")))
+})
+
+test_that("pac_deps_dev", {
+  skip_if_offline()
+  pp <- pacs::pac_deps_dev("memoise", base = FALSE, attr = FALSE, repos = "https://cran.rstudio.com/")$Package
+  rr <- remotes:::find_deps("memoise",
+                            available = pacs:::available_packages(repos = "https://cran.rstudio.com/"),
+                            top_dep = TRUE)
+  rrr <- setdiff(rr, pacs::pacs_base())
+  expect_identical(sort(pp), sort(rrr))
+
+  expect_true(isNA(pac_deps_dev("WRONG")))
+  expect_true(nrow(pac_deps_dev("tinytest", repos = "https://cran.rstudio.com/")) >= 0)
 })

@@ -24,7 +24,7 @@ pac_description(
 
 \item{lib.loc}{character vector, used optionally when local is equal TRUE. Default: \code{.libPaths()}}
 
-\item{repos}{character the base URL of the CRAN repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character vector URLs of the repositories to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 list with names proper for DESCRIPTION file fields.
@@ -37,7 +37,7 @@ Results are cached for 30 minutes with \code{memoise} package.
 }
 \examples{
 \dontrun{
-pac_description("dplyr", version = "0.8.0")
-pac_description("dplyr", at = as.Date("2019-02-01"))
+  pacs::pac_description("dplyr", version = "0.8.0")
+  pacs::pac_description("dplyr", at = as.Date("2019-02-01"))
 }
 }

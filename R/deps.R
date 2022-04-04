@@ -1,16 +1,16 @@
-#' package dependencies
+#' Package dependencies
 #' @description Package dependencies from DESCRIPTION files with installed or expected versions or newest released.
 #' @param pac character a package name.
 #' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
 #' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
 #' Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
-#' @param base logical if to add base packages too. Default: FALSE
+#' @param base logical if to add base packages too. If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
 #' @param local logical if to use local repository or newest CRAN packages, where by default local packages are used. Default: TRUE
 #' @param description_v if the dependencies version should be taken from description files, minimal required. By default installed versions are taken. Default: FALSE
-#' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for FALSE as a additional record. Default: TRUE
+#' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for FALSE as an additional record. Default: TRUE
 #' @param recursive logical If to assess the dependencies recursively. Default: TRUE
-#' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `pacs::biocran_repos()`
+#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
 #' @return data.frame with packages and their versions. Versions are taken from `installed.packages` or newest released.
 #' @note When function is invoked in the loop afterwards results could be aggregated like,
 #' `stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)`.
@@ -116,6 +116,58 @@ pac_deps <- function(pac,
   res_df_f
 }
 
+#' Package dependencies - user perspective
+#' @description A higher-level function, build from `pacs::pacs_deps`.
+#' Package dependencies installed when run `installed.packages`.
+#' `"Depends", "Imports", "LinkingTo"` fields from the DESCRIPTION file and
+#'  their recursive dependencies taken from the same fields.
+#'  Dependencies are taken remotely for the newest version.
+#' @param pac character a package name.
+#' @param base logical if to add base packages too.
+#' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for `FALSE` as an additional record. Default: TRUE
+#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
+#' If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
+#' @export
+#' @examples
+#' \dontrun{
+#' pacs::pac_deps_user("dplyr")
+#' pacs::pac_deps_user("pacs")
+#' # with the main package in the list
+#' pacs::pac_deps_user("pacs", attr = FALSE)
+#' }
+pac_deps_user <- function(pac, base = FALSE, attr = TRUE, repos = pacs::biocran_repos()) {
+  pac_deps(pac, recursive = TRUE, description_v = TRUE, local = FALSE, base = base, attr = attr, repos = repos)
+}
+
+#' Package dependencies - developer perspective
+#' @description A higher-level function, build from `pacs::pacs_deps`.
+#' Package dependencies installed when e.g. `R CMD check` a package.
+#' `"Depends", "Imports", "LinkingTo", "Suggests"` fields from the DESCRIPTION file and
+#'  their recursive dependencies taken from `"Depends", "Imports", "LinkingTo"` fields.
+#'  Dependencies are taken remotely for the newest version.
+#' @param pac character a package name.
+#' @param base logical if to add base packages too.
+#' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for FALSE as an additional record. Default: TRUE
+#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
+#' If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
+#' @export
+#' @examples
+#' \dontrun{
+#' pacs::pac_deps_dev("dplyr")
+#' pacs::pac_deps_dev("pacs")
+#' # with the main package in the list
+#' pacs::pac_deps_dev("pacs", attr = FALSE)
+#' }
+pac_deps_dev <- function(pac, base = FALSE, attr = TRUE, repos = pacs::biocran_repos()) {
+  top <- pac_deps(pac, recursive = TRUE, description_v = TRUE, local = FALSE, base = base, attr = attr, repos = repos)
+  if (isNA(top)) return(NA)
+  suggs <- pac_deps(pac, recursive = FALSE, description_v = TRUE, local = FALSE, fields = "Suggests", base = base, repos = repos)
+  suggs_r <- do.call(rbind, lapply(suggs$Package, function(x) pac_deps(x, description_v = TRUE, local = FALSE, base = base, repos = repos)))
+  results <- do.call(rbind, list(top, suggs, suggs_r))
+  if (nrow(results) == 0) return(data.frame(Package = NA, Version = NA)[0, ])
+  stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)
+}
+
 #' The shiny app dependencies
 #' @description the shiny app dependencies packages are checked recursively.
 #' The `c("Depends", "Imports", "LinkingTo")` DESCRIPTION files fields are checked recursively.
@@ -126,15 +178,17 @@ pac_deps <- function(pac,
 #' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
 #' Default: `c("Depends", "Imports", "LinkingTo")`
 #' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
+#' @param base logical if to add base packages too. If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
 #' @param local logical if to use local repository or newest CRAN packages, where by default local packages are used. Default: TRUE
 #' @param description_v if the dependencies version should be taken from description files, minimal required. By default installed versions are taken. Default: FALSE
 #' @param recursive logical if to assess the dependencies recursively. Default: TRUE
-#' @param repos character the base URL of the CRAN repository to use. Used only for the validation. Default `pacs::biocran_repos()`
+#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
 #' @return character vector with dependency packages or data.frame when checking recursively.
-#' @note the base packages are not taken into account.
+#' @note `renv` package has to be installed.
 #' @export
 #' @examples
 #' \dontrun{
+#' library(renv)
 #' # Please update the path to the custom shiny app
 #' app_path <- system.file("examples/04_mpg", package = "shiny")
 #' pacs::app_deps(app_path)
@@ -144,36 +198,42 @@ app_deps <- function(path = ".",
                      fields = c("Depends", "Imports", "LinkingTo"),
                      lib.loc = .libPaths(),
                      local = TRUE,
+                     base = FALSE,
                      description_v = FALSE,
                      recursive = TRUE,
                      repos = biocran_repos()) {
-  fields <- expand_dependency(fields)
-  stopifnot(dir.exists(path))
-  stopifnot(is.logical(local))
-  stopifnot(is.logical(recursive))
-  stopifnot(is.character(repos))
-  stopifnot(is.logical(description_v))
-  stopifnot(is.null(lib.loc) || (all(lib.loc %in% .libPaths()) && (length(list.files(lib.loc)) > 0)))
+  if (requireNamespace("renv", quietly = TRUE)) {
+    fields <- expand_dependency(fields)
+    stopifnot(dir.exists(path))
+    stopifnot(is.logical(local))
+    stopifnot(is.logical(recursive))
+    stopifnot(is.character(repos))
+    stopifnot(is.logical(description_v))
+    stopifnot(is.null(lib.loc) || (all(lib.loc %in% .libPaths()) && (length(list.files(lib.loc)) > 0)))
 
-  app_deps <- setdiff(renv::dependencies(path, progress = FALSE)$Package, c(pacs_base(), "R"))
-  if (length(app_deps) == 0) {
-    return(data.frame(Package = NA, Version = NA, Direct = NA)[0, ])
-  }
-  not_installed <- setdiff(app_deps, rownames(installed_packages(lib.loc = .libPaths())))
-  if (length(not_installed) && local) {
-    stop(sprintf("Some of the dependency packages are not installed, %s", paste(not_installed, collapse = "; ")))
-  }
-  if (recursive) {
-    app_deps_all <- lapply(app_deps, function(x) pac_deps(x, repos = repos, lib.loc = lib.loc, local = local, fields = fields, description_v = description_v, attr = FALSE))
-    if (any(is.na(app_deps_all))) {
-      return(NA)
+    app_deps <- setdiff(renv::dependencies(path, progress = FALSE)$Package, c(pacs_base(), "R"))
+    if (length(app_deps) == 0) {
+      return(data.frame(Package = NA, Version = NA, Direct = NA)[0, ])
     }
-    app_deps_recursive <- do.call(rbind, app_deps_all)
-    app_deps_recursive <- stats::aggregate(app_deps_recursive[, c("Version"), drop = FALSE], list(Package = app_deps_recursive$Package), pacs::compareVersionsMax)
-    app_deps_recursive$Package <- as.character(app_deps_recursive$Package)
-    app_deps_recursive$Direct <- app_deps_recursive$Package %in% app_deps
-    return(app_deps_recursive)
+    not_installed <- setdiff(app_deps, rownames(installed_packages(lib.loc = .libPaths())))
+    if (length(not_installed) && local) {
+      stop(sprintf("Some of the dependency packages are not installed, %s", paste(not_installed, collapse = "; ")))
+    }
+    if (recursive) {
+      app_deps_all <- lapply(app_deps, function(x) pac_deps(x, repos = repos, lib.loc = lib.loc, local = local, fields = fields, description_v = description_v, base = base, attr = FALSE))
+      if (any(is.na(app_deps_all))) {
+        return(NA)
+      }
+      app_deps_recursive <- do.call(rbind, app_deps_all)
+      if (nrow(app_deps_recursive) == 0) return(NA)
+      app_deps_recursive <- stats::aggregate(app_deps_recursive[, c("Version"), drop = FALSE], list(Package = app_deps_recursive$Package), pacs::compareVersionsMax)
+      app_deps_recursive$Package <- as.character(app_deps_recursive$Package)
+      app_deps_recursive$Direct <- app_deps_recursive$Package %in% app_deps
+      return(app_deps_recursive)
+    } else {
+      return(data.frame(Package = app_deps, Version = "", Direct = TRUE, stringsAsFactors = FALSE))
+    }
   } else {
-    return(data.frame(Package = app_deps, Version = "", Direct = TRUE, stringsAsFactors = FALSE))
+    stop("Please install renv package to use app_deps and app_size functions.")
   }
 }

@@ -1,26 +1,28 @@
 #' Package version life duration at specific Date or for a specific version
-#' @description using CRAN website to get a package life duration for certain version or at a specific Date.
+#' @description a package life duration for a certain version or at a specific Date.
 #' @param pac character a package name.
 #' @param version character package version, By default the newest version is taken.
 #' The local repository has priority, it version is available. Default: NULL
 #' @param at Date old version of package. Default: NULL
 #' @param lib.loc character vector. Is omitted for non NULL version. Default: `.libPaths()`
-#' @param repos character vector base URLs of the repositories to use. By default checking CRAN and newest Bioconductor. Default `pacs::biocran_repos()`
+#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
 #' @param source character one of `c("crandb", "cran")`. Using the `MEATCRAN  CRANDB` or the direct web page download from CRAN. Default: `"crandb"`
 #' @return `difftime`, number of days package version was the newest one.
-#' @note Function will scrap two github CRAN mirror and CRAN URL. Works mainly with CRAN packages.
-#' Please as a courtesy to the R CRAN, don't overload their server by constantly using this function.
-#' Results are cached for 30 minutes with `memoise` package, memory cache.
+#' @note
+#' Results are cached for 30 minutes with `memoise` package.
 #' The `crandb` R packages database is a part of `METACRAN` project, source:
 #' Csárdi G, Salmon M (2022). `pkgsearch`: Search and Query CRAN R Packages. `https://github.com/r-hub/pkgsearch`, `https://r-hub.github.io/pkgsearch/`.
+#' For `source = "cran"`the function will scrap two CRAN URLS. Works only with CRAN packages.
+#' Please as a courtesy to the R CRAN, don't overload their servers by constantly using this function.
 #' @export
 #' @examples
 #' \dontrun{
-#' pac_lifeduration("memoise")
-#' pac_lifeduration("dplyr", version = "0.8.0")
-#' pac_lifeduration("dplyr", at = as.Date("2019-02-14"))
-#' # For Bioconductor packages will work only for the newest per R version and installed packages.
-#' pac_lifeduration("S4Vectors")
+#' pacs::pac_lifeduration("memoise")
+#' pacs::pac_lifeduration("memoise", source = "cran")
+#' pacs::pac_lifeduration("dplyr", version = "0.8.0")
+#' pacs::pac_lifeduration("dplyr", at = as.Date("2019-02-14"))
+#' # For Bioconductor packages it will work only for the newest per R version and installed ones.
+#' pacs::pac_lifeduration("S4Vectors")
 #' }
 pac_lifeduration <- function(pac,
                              version = NULL,
@@ -88,9 +90,10 @@ pac_lifeduration <- function(pac,
 }
 
 #' CRAN package health state at a specific Date or for a specific version
-#' @description using CRAN website to get a package version/versions used at a specific Date interval.
+#' @description a package health for a certain version or at a specific Date.
 #' A healthy package was published for more than x days, where default is 14 days.
 #' CRAN team gives around one/two week to resolved a package which gave errors under the check page.
+#' The newest release is checked for any warnings/errors on the R CRAN package check page.
 #' @param pac character a package name.
 #' @param version character package version, By default the newest version is taken. Default: NULL
 #' @param at Date old version of package. Default: NULL
@@ -98,22 +101,22 @@ pac_lifeduration <- function(pac,
 #' @param scope character vector scope of R CRAN check pages statuses to consider, any of `c("ERROR", "FAIL", "WARN", "NOTE")`. Default `c("ERROR", "FAIL")`
 #' @param flavors character vector of CRAN machines to consider, which might be retrieved with `pacs::cran_flavors()$Flavor`. By default all CRAN machines are considered, NULL value. Default NULL
 #' @param lib.loc character vector. Is omitted for non NULL version. Default: `.libPaths()`
-#' @param repos character the base CRAN URL of the repository to use. Default "https://cran.rstudio.org"
+#' @param repos character vector URLs of the repositories to use. Default `https://cran.rstudio.com/`
 #' @param source character one of `c("crandb", "cran")`. Using the `MEATCRAN` DB or the direct web page download from CRAN. Default: `"crandb"`
 #' @return logical if a package is healthy.
-#' @note Function will scrap two/tree CRAN URLS. Works only with CRAN packages.
-#' The newest release are checked for warnings/errors on R CRAN check page.
-#' Please as a courtesy to the R CRAN, don't overload their server by constantly using this function.
-#' Results are cached for 30 minutes with `memoise` package, memory cache.
+#' @note
+#' Results are cached for 30 minutes with `memoise` package.
 #' The `crandb` R packages database is a part of `METACRAN` project, source:
 #' Csárdi G, Salmon M (2022). `pkgsearch`: Search and Query CRAN R Packages. `https://github.com/r-hub/pkgsearch`, `https://r-hub.github.io/pkgsearch/`.
+#' For `source = "cran"`the function will scrap two CRAN URLS. Works only with CRAN packages.
+#' Please as a courtesy to the R CRAN, don't overload their servers by constantly using this function.
 #' @export
 #' @examples
 #' \dontrun{
-#' pac_health("memoise")
-#' pac_health("dplyr", version = "0.8.0", limit = 14)
-#' pac_health("dplyr", at = as.Date("2019-02-14"))
-#' pac_health("dplyr", limit = 14, scope = c("ERROR", "FAIL"))
+#' pacs::pac_health("memoise")
+#' pacs::pac_health("dplyr", version = "0.8.0", limit = 14)
+#' pacs::pac_health("dplyr", at = as.Date("2019-02-14"))
+#' pacs::pac_health("dplyr", limit = 14, scope = c("ERROR", "FAIL"))
 #' }
 pac_health <- function(pac,
                        version = NULL,
@@ -152,25 +155,29 @@ pac_health <- function(pac,
 }
 
 #' Packages life duration for a specific version
-#' @description using CRAN website to get a package life duration for certain version or at a specific Date.
+#' @description packages life duration for certain versions.
 #' @param pacs character vector packages names.
 #' @param versions character vector packages versions.
 #' @param source character one of `c("crandb", "loop_crandb", "loop_cran")`.
 #' The `"crandb"` works if less than `getOption("pacs.crandb_limit")` (currently 500) packages are looked for.
 #' Default: `"crandb"`
 #' @param lib.loc character vector. Is omitted for non NULL version. Default: `.libPaths()`
-#' @param repos character the base CRAN URL of the repository to use. Default `"https://cran.rstudio.org"`
-#' @param pacs character vector packages names.
+#' @param repos character vector repositories. Default `https://cran.rstudio.org`
+#' @param pacs character vector packages names.``
 #' @return data.frame with two columns package name and life duration.
-#' @note Function will scrap two/tree CRAN URLS. Works only with CRAN packages.
-#' Results are cached for 30 minutes with `memoise` package, memory cache.
+#' @note
+#' Results are cached for 30 minutes with `memoise` package.
 #' The `crandb` R packages database is a part of `METACRAN` project, source:
 #' Csárdi G, Salmon M (2022). `pkgsearch`: Search and Query CRAN R Packages. `https://github.com/r-hub/pkgsearch`, `https://r-hub.github.io/pkgsearch/`.
+#' For `source = "loop_cran"`the function will scrap two CRAN URLS. Works only with CRAN packages.
+#' Please as a courtesy to the R CRAN, don't overload their servers by constantly using this function.
 #' @export
 #' @examples
 #' \dontrun{
-#' pacs_lifeduration(c("dplyr", "tidyr"), c("1.0.0", "1.2.0"))
-#' pacs_lifeduration(c("dplyr", "tidyr"), c("1.0.0", "1.2.0"), source = "loop_cran")
+#' pacs::pacs_lifeduration(c("dplyr", "tidyr"), c("1.0.0", "1.2.0"))
+#' pacs::pacs_lifeduration(c("dplyr", "tidyr"), c("1.0.0", "1.2.0"), source = "loop_cran")
+#' # last versions
+#' pacs::pacs_lifeduration(c("dplyr", "tidyr"), sapply(c("dplyr", "tidyr"), pacs::pac_last))
 #' }
 pacs_lifeduration <- function(pacs, versions, source = c("crandb", "loop_crandb", "loop_cran"), lib.loc = .libPaths(), repos = biocran_repos()) {
   if (length(pacs) != length(versions)) {

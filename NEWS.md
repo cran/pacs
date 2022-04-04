@@ -1,10 +1,20 @@
+# pacs 0.4.4
+
+* `tinyverse` vignette.
+* fixed edge cases for `pacs::pac_deps`.
+* fixed `lock_validate`, the condition for validating the maximum number of packages was taken from the library size not the lock file size.
+* two new higer-level functions `pacs::pac_deps_user` and `pacs::pac_deps_dev`.
+* `renv` transferred to `Suggests`, as used by only 2 functions.
+* improved documentation.
+* updated pkgdown website.
+
 # pacs 0.4.3
 
 * added an additional source for getting all releases of packages, the `metacran` db (new default).
 * added a new validation function, `lock_validate`. It helps to validate a `renv` lock file.
 * more efficient check of the Internet connection with the `curl` package.
 * more elegant separation of the code.
-* more testthat tests, `mockery`.
+* more `testthat` tests, `mockery`.
 
 # pacs 0.4.2
 

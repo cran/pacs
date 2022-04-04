@@ -24,7 +24,7 @@ pac_namespace(
 
 \item{lib.loc}{character vector, used optionally when local is equal TRUE. Default: \code{.libPaths()}}
 
-\item{repos}{character the base URL of the CRAN repository to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{character vector URLs of the repositories to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
 list with names proper for NAMESPACE file, the same as format as returned by \code{base::parseNamespaceFile}.
@@ -38,8 +38,8 @@ This function is mainly built under source code from \code{base::parseNamespaceF
 }
 \examples{
 \dontrun{
-pac_namespace("dplyr", version = "0.8.0")
-pac_namespace("dplyr", at = as.Date("2019-02-01"))
-pac_namespace("memoise", local = TRUE)
+pacs::pac_namespace("dplyr", version = "0.8.0")
+pacs::pac_namespace("dplyr", at = as.Date("2019-02-01"))
+pacs::pac_namespace("memoise", local = TRUE)
 }
 }
