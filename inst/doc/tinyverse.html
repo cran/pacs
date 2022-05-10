@@ -13,7 +13,7 @@
 
 <title>tinyverse</title>
 
-<script src="tinyverse_files/header-attrs-2.13/header-attrs.js"></script>
+<script src="tinyverse_files/header-attrs-2.14/header-attrs.js"></script>
 <script src="tinyverse_files/jquery-3.6.0/jquery-3.6.0.min.js"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link href="tinyverse_files/bootstrap-3.3.5/css/spacelab.min.css" rel="stylesheet" />
@@ -567,12 +567,21 @@ loaded with <code>requireNampese</code> too. This mean that the higher
 number of dependencies from the <code>testthat</code> package is only my
 problem (developer one, not the end user) when e.g. I am checking the
 package (e.g. with <code>R CMD check</code>). To be fair how many
-additional packages have to be downloaded be <strong>a
+additional packages have to be downloaded by <strong>a
 developer</strong> (e.g. for <code>R CMD check</code>) when comparing
-<code>tinytest</code> and <code>testthat</code>. In the case of tinytest
-it is zero packages and for <code>testthat</code> 80 packages now.
-Please use <code>pacs::pac_deps_dev("tinytest")</code> and
-<code>pacs::pac_deps_dev("testthat")</code> calls to confirm that.</p>
+<code>tinytest</code> and <code>testthat</code>. When we want to check
+these packages directly, I will be adding some code to these packages.
+In the case of <code>tinytest</code> it is zero packages and for
+<code>testthat</code> 80 packages now. Please use
+<code>pacs::pac_deps_dev("tinytest")</code> and
+<code>pacs::pac_deps_dev("testthat")</code> calls to confirm that. When
+<code>tinytest</code> and <code>testthat</code>are in the Suggests field
+of another package (e.g. <code>pacs</code>) which we will be
+<code>R CMD check</code>, then developer need additional 0 packages for
+<code>tinytest</code> and 30 packages for <code>testthat</code>
+(<code>pacs::pac_deps_user("testthat")</code>). Remember that these
+dependencies might overlap with other packages and their
+dependencies.</p>
 <p>Dependencies from the end user perspective:</p>
 <p><code>tinytest</code>:<br />
 <a href="https://CRAN.R-project.org/package=tinytest"><img
@@ -584,17 +593,18 @@ src="https://tinyverse.netlify.com/badge/testthat" /></a></p>
 <div id="how-to-reduce-the-number-of-dependencies"
 class="section level2">
 <h2>How to reduce the number of dependencies</h2>
-<p>One of the method of reducing number of dependencies is to transfer
-the package from Imports to Suggests or not include it at all and load
-it in the delayed manner. So we have to identify package functions which
-will be used optionally or rarely (are not a core of the package). Then
-we have to apply conditional execution of it if the package is installed
-(available), if not then ask to install it. If function with such
-delayed loaded package is used in examples or tests then the package
-have to be in **Suggests* field.</p>
+<p>One of the method of reducing number of dependencies (exposed to end
+users) is to transfer the package from Imports to Suggests and load it
+in the delayed manner, or not include it at all. So we have to identify
+package functions which will be used optionally or rarely (are not a
+core of the package). Then we have to apply conditional execution of it
+if the package is installed (available), if not then ask user to install
+it. If a function with such delayed loaded package is used in examples
+or tests then the package have to be in <strong>Suggests</strong>
+field.</p>
 <pre><code>func &lt;- function() {
   if (requireNamespace(&quot;PACKAGE&quot;, quietly = TRUE)) {
-    regular code 
+    # regular code 
   } else {
     stop(&quot;Please install the PACKAGE to use the func function&quot;)
   }

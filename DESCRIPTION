@@ -1,6 +1,6 @@
 Package: pacs
 Title: Supplementary Tools for R Packages Developers
-Version: 0.4.4
+Version: 0.4.5
 Authors@R: 
     person(given = "Maciej",
            family = "Nasinski",
@@ -25,12 +25,12 @@ Encoding: UTF-8
 RoxygenNote: 7.1.2
 Depends: R (>= 3.5.0)
 Imports: curl, memoise, jsonlite, xml2, stringi
-Suggests: remotes, renv, withr, pkgsearch, mockery, testthat (>=
-        3.0.0), knitr, rmarkdown
+Suggests: nomnoml, remotes, renv, withr, pkgsearch, posterdown,
+        mockery, testthat (>= 3.0.0), knitr, rmarkdown
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2022-04-04 17:40:26 UTC; maciejnasinski
+Packaged: 2022-05-10 18:41:14 UTC; maciejnasinski
 Author: Maciej Nasinski [aut, cre]
 Repository: CRAN
-Date/Publication: 2022-04-04 18:40:02 UTC
+Date/Publication: 2022-05-10 22:50:02 UTC

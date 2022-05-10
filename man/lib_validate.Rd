@@ -9,6 +9,7 @@ lib_validate(
   fields = c("Depends", "Imports", "LinkingTo"),
   lifeduration = FALSE,
   checkred = list(scope = character(0), flavors = NULL),
+  built = FALSE,
   repos = biocran_repos()
 )
 }
@@ -23,16 +24,23 @@ Default: \code{c("Depends", "Imports", "LinkingTo")}}
 
 \item{checkred}{list with two named fields, \code{scope} and \code{flavor}. \code{scope} of R CRAN check pages statuses to consider, any of \code{c("ERROR", "FAIL", "WARN", "NOTE")}. \code{flavor} is a vector of CRAN machines to consider, which might be retrieved with \code{pacs::cran_flavors()$Flavor}. By default an empty scope field deactivated assessment for \code{checkred} column, and NULL flavor will results in checking all machines. Default \code{list(scope = character(0), flavor = NULL)}}
 
+\item{built}{logical if to add an R version under which each package was installed.
+Useful mainly for a local usage.
+Packages installed with a previous version of R could not work correctly with the new version of R. Default: \code{FALSE}}
+
 \item{repos}{character vector base URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default \code{pacs::biocran_repos()}}
 }
 \value{
-data.frame with 4/6/7/8 columns.
+data.frame with 4/6/8/9/10 columns.
 \describe{
 \item{Package}{character a package name.}
 \item{Version.expected.min}{character expected by DESCRIPTION files minimal version. "" means not specified so the newest version.}
 \item{Version.have}{character installed package version.}
 \item{version_status}{ numeric -1/0/1 which comes from \code{utils::compareVersion} function.
 0 means that we have the same version as required by DESCRIPTION files. -1 means we have too low version installed, this is an error. 1 means we have higher version.}
+\item{built}{character package was built under this R version}
+\item{built_status}{integer if the package was built under the current R version, then 1 (good) and for older R versions 0 (possibly bad).
+A package built under older R version or mix of packages built under different versions could bring possible failures.}
 \item{newest}{logical (Internet needed) if the installed version is the newest one. For Bioconductor if is the newest one per R version.}
 \item{cran}{logical (Internet needed) if the package is on CRAN, version is not taken into account here.}
 \item{checkred}{(Optional) (Internet needed) logical if the NEWEST package contains any specified statuses on CRAN check page. \code{pacs::checked_packages} is used to quickly retrieve all statuses at once.}

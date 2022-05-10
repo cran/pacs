@@ -1,3 +1,9 @@
+# pacs 0.4.5
+
+* `pac_deps_dev` and `pac_deps_user` could be used for local packages now.
+* a new optional `lib_validate` column inspired by the Winston Chang, if the packages have a proper `Built` version.
+* a poster vignette.
+
 # pacs 0.4.4
 
 * `tinyverse` vignette.
