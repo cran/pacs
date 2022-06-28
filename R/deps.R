@@ -1,17 +1,8 @@
 #' Package dependencies
 #' @description Package dependencies from DESCRIPTION files with installed or expected versions or newest released.
-#' @param pac character a package name.
-#' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
-#' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
-#' Default: `c("Depends", "Imports", "LinkingTo")`
-#' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
-#' @param base logical if to add base packages too. If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
-#' @param local logical if to use local repository or newest CRAN packages, where by default local packages are used. Default: TRUE
-#' @param description_v if the dependencies version should be taken from description files, minimal required. By default installed versions are taken. Default: FALSE
-#' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for FALSE as an additional record. Default: TRUE
-#' @param recursive logical If to assess the dependencies recursively. Default: TRUE
-#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
-#' @return data.frame with packages and their versions. Versions are taken from `installed.packages` or newest released.
+#' @inheritParams standard_args
+#' @param local logical if to use local repository (or newest remote packages). Default: TRUE
+#' @return `data.frame` with packages and their versions. Versions are taken from `installed.packages` or newest released.
 #' @note When function is invoked in the loop afterwards results could be aggregated like,
 #' `stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)`.
 #' @export
@@ -122,12 +113,8 @@ pac_deps <- function(pac,
 #' `"Depends", "Imports", "LinkingTo"` fields from the DESCRIPTION file and
 #'  their recursive dependencies taken from the same fields.
 #'  Dependencies are taken remotely for the newest version.
-#' @param pac character a package name.
-#' @param base logical if to add base packages too.
-#' @param local logical if to use local repository or newest CRAN packages, where by default local packages are used. Default: TRUE
-#' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for `FALSE` as an additional record. Default: TRUE
-#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
-#' If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
+#' @inheritParams standard_args
+#' @return `data.frame` with packages and their versions. Versions are taken from `installed.packages` or newest released.
 #' @export
 #' @examples
 #' \dontrun{
@@ -146,12 +133,8 @@ pac_deps_user <- function(pac, base = FALSE, local = FALSE, attr = TRUE, repos =
 #' `"Depends", "Imports", "LinkingTo", "Suggests"` fields from the DESCRIPTION file and
 #'  their recursive dependencies taken from `"Depends", "Imports", "LinkingTo"` fields.
 #'  Dependencies are taken remotely for the newest version.
-#' @param pac character a package name.
-#' @param base logical if to add base packages too.
-#' @param local logical if to use local repository or newest CRAN packages, where by default local packages are used. Default: TRUE
-#' @param attr logical specify if a package and its version should be added as a attribute of data.frame or for FALSE as an additional record. Default: TRUE
-#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
-#' If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
+#' @inheritParams standard_args
+#' @return `data.frame` with packages and their versions. Versions are taken from `installed.packages` or newest released.
 #' @export
 #' @examples
 #' \dontrun{
@@ -174,22 +157,48 @@ pac_deps_dev <- function(pac, base = FALSE, local = FALSE, attr = TRUE, repos = 
   stats::aggregate(results[, c("Version"), drop = FALSE], list(Package = results$Package), pacs::compareVersionsMax)
 }
 
+#' Package direct dependencies and number of dependencies for each of them
+#' @description A higher-level function, build from `pacs::pacs_deps` and `tools::package_dependencies`.
+#' A tool to identify a main sources of dependencies, which direct dependencies are the heaviest one.
+#' @inheritParams standard_args
+#' @return `data.frame` with three columns `c("Package", "NrDeps", "NrUniqueDeps")`: package name, number of dependencies and number of unique dependencies (not shared by other direct dependencies).
+#' @note Please take into account that the sum of the dependencies is not equal to the number of dependencies of the main package,
+#' because some dependencies are overlapping.
+#' @export
+#' @examples
+#' \dontrun{
+#' pacs::pac_deps_heavy("caret")
+#' pacs::pac_deps_heavy("dplyr")
+#' }
+pac_deps_heavy <- function(pac, fields = c("Depends", "Imports", "LinkingTo"), lib.loc = .libPaths(), base = FALSE, local = FALSE, repos = pacs::biocran_repos()) {
+  top <- pac_deps(pac, fields = fields, recursive = FALSE, local = local, base = base, attr = TRUE, repos = repos)
+  if (isNA(top)) {
+    return(NA)
+  }
+  db_base <- if (local) installed_packages(lib.loc = lib.loc) else available_packages(repos)
+  pacs <- tools::package_dependencies(top$Package, which = c("Depends", "Imports", "LinkingTo"), recursive = TRUE, db = db_base)
+
+  if (!base) {
+    pacs <- lapply(pacs, function(p) setdiff(p, pacs_base()))
+  }
+  deps_all <- length(unique(c(unlist(pacs), names(pacs))))
+  pacs_n <- names(pacs)
+  pacs_u <- vapply(seq_along(pacs), function(p) length(unique(setdiff(pacs[[p]], c(unlist(pacs[-p]), pacs_n[-p])))), integer(1))
+  pacs_l <- vapply(pacs, length, integer(1))
+  res <- data.frame(Package = names(pacs_l), NrDeps = pacs_l, NrUniqueDeps = pacs_u, stringsAsFactors = FALSE)
+  rownames(res) <- NULL
+  res
+}
+
 #' The shiny app dependencies
 #' @description the shiny app dependencies packages are checked recursively.
 #' The `c("Depends", "Imports", "LinkingTo")` DESCRIPTION files fields are checked recursively.
 #' The required dependencies have to be installed in the local repository.
 #' The default arguments setup is recommended.
-#' @param path path to the shiny app. Default: `"."`
-#' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
-#' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
-#' Default: `c("Depends", "Imports", "LinkingTo")`
-#' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
-#' @param base logical if to add base packages too. If `TRUE` then `pacs::pacs_base()` are taken into account. Default: FALSE
-#' @param local logical if to use local repository or newest CRAN packages, where by default local packages are used. Default: TRUE
-#' @param description_v if the dependencies version should be taken from description files, minimal required. By default installed versions are taken. Default: FALSE
-#' @param recursive logical if to assess the dependencies recursively. Default: TRUE
-#' @param repos character vector URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
-#' @return character vector with dependency packages or data.frame when checking recursively.
+#' @inheritParams standard_args
+#' @param local `logical` if to use local repository (or newest remote packages). Default: TRUE
+#' @param repos `character` vector base URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default `pacs::biocran_repos()`
+#' @return `character` vector with dependency packages or data.frame when checking recursively.
 #' @note `renv` package has to be installed.
 #' @export
 #' @examples

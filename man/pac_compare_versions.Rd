@@ -14,22 +14,22 @@ pac_compare_versions(
 )
 }
 \arguments{
-\item{pac}{character a package name.}
+\item{pac}{\code{character} a package name.}
 
-\item{old}{character an old version of package, default local version. Default: NULL}
+\item{old}{\code{character} an old version of package, default local version. Default: \code{NULL}}
 
-\item{new}{character a new version of package, default newest version. Default: NULL}
+\item{new}{\code{character} a new version of package, default newest version. Default: \code{NULL}}
 
-\item{fields}{a character vector listing the types of dependencies, a subset of \code{c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")}.
+\item{fields}{\code{character} vector listing the types of dependencies, a subset of \code{c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")}.
 Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
 Default: \code{c("Depends", "Imports", "LinkingTo")}}
 
-\item{lib.loc}{character vector. Default: \code{.libPaths()}}
+\item{lib.loc}{\code{character} vector of search paths with local packages. Default: \code{.libPaths()}}
 
-\item{repos}{character vector URLs of the repositories to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{\code{character} vector repositories URLs to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
-data.frame with 4 columns.
+\code{data.frame} with 4 columns.
 \describe{
 \item{Package}{character package names.}
 \item{Version.OLD}{character versions of dependencies required by an old package version.}

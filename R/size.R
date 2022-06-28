@@ -1,8 +1,7 @@
 #' Size of the package
 #' @description Size of package.
-#' @param pac character a package name.
-#' @param lib.loc character vector. Default: `.libPaths()`
-#' @return numeric size in bytes, to get MB ten divide by `10**6`.
+#' @inheritParams standard_args
+#' @return `numeric` size in bytes, to get MB ten divide by `10**6`.
 #' @export
 #' @examples
 #' \dontrun{
@@ -17,14 +16,9 @@ pac_size <- function(pac, lib.loc = .libPaths()) {
 
 #' True size of the package
 #' @description True size of the package as it takes into account its all dependencies, recursively.
-#' @param pac character a package name.
-#' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
-#' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
-#' Default: `c("Depends", "Imports", "LinkingTo")`
-#' @param lib.loc character vector. Default: `.libPaths()`
-#' @param exclude_joint integer exclude packages which are dependencies of at least N other packages, not count main package dependencies. Default: 0
+#' @inheritParams standard_args
 #' @note R base packages are not counted. The default value of `fields` should be suited for almost all scenarios.
-#' @return numeric size in bytes, to get MB then divide by `10**6`.
+#' @return `numeric` size in bytes, to get MB then divide by `10**6`.
 #' @export
 #' @examples
 #' \dontrun{
@@ -53,13 +47,8 @@ pac_true_size <- function(pac,
 #' @description The size of shiny app is a sum of dependencies packages and the app directory.
 #' The app dependencies packages are checked recursively, and only in local repository.
 #' The default arguments setup is recommended.
-#' @param path path to the shiny app. Default: `"."`
-#' @param fields a character vector listing the types of dependencies, a subset of `c("Depends", "Imports", "LinkingTo", "Suggests", "Enhances")`.
-#' Character string "all" is shorthand for that vector, character string "most" for the same vector without "Enhances", character string "strong" (default) for the first three elements of that vector.
-#' Default: `c("Depends", "Imports", "LinkingTo")`
-#' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
-#' @param recursive logical if to assess the dependencies recursively. Default: TRUE
-#' @return numeric size in bytes, to get MB ten divide by `10**6`.
+#' @inheritParams standard_args
+#' @return `numeric` size in bytes, to get MB ten divide by `10**6`.
 #' @note `renv` package has to be installed. `base` packages (`pacs::pacs_base()`) are not taken into account.
 #' @export
 #' @examples

@@ -7,12 +7,12 @@
 compareVersionsMax(vec, na.rm = TRUE)
 }
 \arguments{
-\item{vec}{character vector}
+\item{vec}{\code{character} vector.}
 
-\item{na.rm}{logical if to remove NA values.}
+\item{na.rm}{\code{logical} if to remove \code{NA} values.}
 }
 \value{
-character maximum version
+\code{character} maximum version
 }
 \description{
 Reduce function over the \code{utils::compareVersion}

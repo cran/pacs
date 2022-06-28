@@ -3,7 +3,6 @@
 [![CRAN](https://www.r-pkg.org/badges/version/pacs)](https://cran.r-project.org/package=pacs)
 [![codecov](https://codecov.io/gh/Polkas/pacs/branch/master/graph/badge.svg)](https://app.codecov.io/gh/Polkas/pacs)
 
-
 [**For more information please visit the pacs website**](https://polkas.github.io/pacs/).
 
 [**Functions Reference**](https://polkas.github.io/pacs/reference/index.html)
@@ -37,4 +36,38 @@ CRAN:
 
 ```r
 install.packages("pacs")
+```
+
+## Examples
+
+For more examples with descriptions please visit [**the walk-through vignette**](https://polkas.github.io/pacs/articles/GettingStarted.html).
+
+Validate the library:
+
+```r
+pacs::lib_validate(
+  checkred = list(
+    scope = c("ERROR", "FAIL"),
+    # by default all flavors
+    flavors = NULL
+  )
+)
+```
+
+All CRAN releases of a package:
+
+```r
+pacs::pac_timemachine("dplyr")
+```
+
+Compare package DESCRIPTION file dependencies between versions:
+
+```r
+pacs::pac_compare_versions("shiny", "1.0.0", "1.5.0")
+```
+
+Looking for heavy dependencies:
+
+```r
+pacs::pac_deps_heavy("caret")
 ```

@@ -14,20 +14,20 @@ pac_timemachine(
 )
 }
 \arguments{
-\item{pac}{character a package name.}
+\item{pac}{\code{character} a package name.}
 
-\item{at}{Date old version of package. Default: NULL}
+\item{at}{\code{Date} from which to take the version. Default: \code{NULL}}
 
-\item{from}{Date new version of package. Default: NULL}
+\item{from}{\code{Date} the lower limit. Default: \code{NULL}}
 
-\item{to}{Date CRAN URL. Default: NULL}
+\item{to}{\code{Date} the upper limit. Default: \code{NULL}}
 
-\item{version}{character version of package. Default: NULL}
+\item{version}{\code{character} version of a package. Default: \code{NULL}}
 
-\item{source}{character one of \code{c("crandb", "cran")}. Using the \code{MEATCRAN} DB or the direct web page download from CRAN. Default: \code{"crandb"}}
+\item{source}{\code{character} one of \code{c("crandb", "cran")}. Using the \verb{MEATCRAN CRANDB} or the direct web page download from CRAN. Default: \code{"crandb"}}
 }
 \value{
-data.frame with 7 columns
+\code{data.frame} with 7 columns
 \describe{
 \item{Package}{character package name.}
 \item{Version}{character package version.}
@@ -50,6 +50,7 @@ Please as a courtesy to the R CRAN, don't overload their servers by constantly u
 }
 \examples{
 \dontrun{
+pacs::pac_timemachine("dplyr")
 pacs::pac_timemachine("dplyr", at = as.Date("2017-02-02"))
 pacs::pac_timemachine("dplyr", from = as.Date("2017-02-02"), to = as.Date("2018-04-02"))
 pacs::pac_timemachine("dplyr", at = Sys.Date())

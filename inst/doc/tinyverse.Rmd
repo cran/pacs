@@ -154,7 +154,7 @@ The DESCRIPTION file Imports is mainly used by `install.packages`.
 On the other hand NAMESPACE is a place where we defining what we need to build our package and what we want to expose to the end users (export). Nowadays the NAMESPACE file is even more mistearious as it is build automatically e.g. by `roxygen2` package.
 A package have to be listed in the **Imports** in DESCRIPTION file, but not in NAMESPACE if we will call the dependencies function with `::` in the main package. This explicit calls to dependencies are preferred.
  
-If you are interested "How-R-Searches-And-Finds-Stuff" I recommend [a great blog post](http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/) which have more than 10 years and still is a one of the most valuable R sources.
+If you are interested "How-R-Searches-And-Finds-Stuff" I recommend [a great blog post](https://blog.thatbuthow.com/how-r-searches-and-finds-stuff/) which have more than 10 years and still is a one of the most valuable R sources.
 
 ## `tinytest` vs `testthat`
 
@@ -176,6 +176,12 @@ Dependencies from the end user perspective:
 [![](https://tinyverse.netlify.com/badge/testthat)](https://CRAN.R-project.org/package=testthat)
 
 ## How to reduce the number of dependencies
+
+- `yagni` (XP) - do not include unnecessary features
+- `modularization` - divide your package to a few smaller and specialized ones
+- delayed loading of packages
+
+### Delayed loading of packages
 
 One of the method of reducing number of dependencies (exposed to end users) is to transfer the package from Imports to Suggests and load it in the delayed manner, or not include it at all. 
 So we have to identify package functions which will be used optionally or rarely (are not a core of the package).
@@ -261,10 +267,16 @@ pacs::pac_deps("devtools", local = TRUE)$Package
 pacs::pac_deps("devtools", local = TRUE, recursive = FALSE)$Package
 ```
 
+We could check out which of the direct dependencies are heaviest ones:
+
+```r
+pac_deps_heavy("devtools")
+```
+
 ## References
 
 Please read in the order all of the 3 sources to become a R packages developer guru :=)
 
 - https://r-pkgs.org/
-- http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/
+- https://blog.thatbuthow.com/how-r-searches-and-finds-stuff/
 - https://cran.r-project.org/doc/manuals/r-release/R-exts.html

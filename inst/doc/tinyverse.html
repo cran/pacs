@@ -544,7 +544,7 @@ the <strong>Imports</strong> in DESCRIPTION file, but not in NAMESPACE
 if we will call the dependencies function with <code>::</code> in the
 main package. This explicit calls to dependencies are preferred.</p>
 <p>If you are interested “How-R-Searches-And-Finds-Stuff” I recommend <a
-href="http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/">a
+href="https://blog.thatbuthow.com/how-r-searches-and-finds-stuff/">a
 great blog post</a> which have more than 10 years and still is a one of
 the most valuable R sources.</p>
 </div>
@@ -593,6 +593,14 @@ src="https://tinyverse.netlify.com/badge/testthat" /></a></p>
 <div id="how-to-reduce-the-number-of-dependencies"
 class="section level2">
 <h2>How to reduce the number of dependencies</h2>
+<ul>
+<li><code>yagni</code> (XP) - do not include unnecessary features</li>
+<li><code>modularization</code> - divide your package to a few smaller
+and specialized ones</li>
+<li>delayed loading of packages</li>
+</ul>
+<div id="delayed-loading-of-packages" class="section level3">
+<h3>Delayed loading of packages</h3>
 <p>One of the method of reducing number of dependencies (exposed to end
 users) is to transfer the package from Imports to Suggests and load it
 in the delayed manner, or not include it at all. So we have to identify
@@ -622,6 +630,7 @@ the repo.</p>
 <p><a href="https://github.com/topepo/caret">caret github</a></p>
 <p><a href="https://github.com/tidymodels/parsnip">parsnip
 github</a></p>
+</div>
 </div>
 <div id="pacs-package" class="section level2">
 <h2><code>pacs</code> package</h2>
@@ -665,6 +674,9 @@ src="https://tinyverse.netlify.com/badge/devtools" /></a></p>
 <span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pac_deps</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">local =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>Package</span>
 <span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 20 direct dependencies</span></span>
 <span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pac_deps</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">local =</span> <span class="cn">TRUE</span>, <span class="at">recursive =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>Package</span></code></pre></div>
+<p>We could check out which of the direct dependencies are heaviest
+ones:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pac_deps_heavy</span>(<span class="st">&quot;devtools&quot;</span>)</span></code></pre></div>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>
@@ -674,8 +686,8 @@ developer guru :=)</p>
 <li><a href="https://r-pkgs.org/"
 class="uri">https://r-pkgs.org/</a></li>
 <li><a
-href="http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/"
-class="uri">http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/</a></li>
+href="https://blog.thatbuthow.com/how-r-searches-and-finds-stuff/"
+class="uri">https://blog.thatbuthow.com/how-r-searches-and-finds-stuff/</a></li>
 <li><a
 href="https://cran.r-project.org/doc/manuals/r-release/R-exts.html"
 class="uri">https://cran.r-project.org/doc/manuals/r-release/R-exts.html</a></li>

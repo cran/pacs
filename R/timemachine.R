@@ -1,12 +1,7 @@
 #' Package metadata for all releases
 #' @description Using CRAN website to get a package metadata used at a specific Date or a Date interval or for specific version.
-#' @param pac character a package name.
-#' @param at Date old version of package. Default: NULL
-#' @param from Date new version of package. Default: NULL
-#' @param version character version of package. Default: NULL
-#' @param to Date CRAN URL. Default: NULL
-#' @param source character one of `c("crandb", "cran")`. Using the `MEATCRAN` DB or the direct web page download from CRAN. Default: `"crandb"`
-#' @return data.frame with 7 columns
+#' @inheritParams standard_args
+#' @return `data.frame` with 7 columns
 #' \describe{
 #' \item{Package}{character package name.}
 #' \item{Version}{character package version.}
@@ -25,6 +20,7 @@
 #' @export
 #' @examples
 #' \dontrun{
+#' pacs::pac_timemachine("dplyr")
 #' pacs::pac_timemachine("dplyr", at = as.Date("2017-02-02"))
 #' pacs::pac_timemachine("dplyr", from = as.Date("2017-02-02"), to = as.Date("2018-04-02"))
 #' pacs::pac_timemachine("dplyr", at = Sys.Date())

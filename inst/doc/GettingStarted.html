@@ -1981,6 +1981,9 @@ assume if your local installation is a reasonable proxy for an average
 user.</p>
 <div class="sourceCode" id="cb39"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="co"># exclude packages if at least one other package use it too</span></span>
 <span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_true_size</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">exclude_joint =</span> 1L) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<p>We could check out which of the direct dependencies are heaviest
+ones:</p>
+<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pac_deps_heavy</span>(<span class="st">&quot;devtools&quot;</span>)</span></code></pre></div>
 </div>
 <div id="the-shiny-app-utils" class="section level2">
 <h2>The shiny app utils</h2>
@@ -1989,24 +1992,24 @@ user.</p>
 fields are check recursively for each package recognized with the
 <code>renv::dependencies</code> function. The required dependencies have
 to be installed in the local repository.</p>
-<div class="sourceCode" id="cb40"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">app_deps</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>), <span class="at">description_v =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">app_deps</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>), <span class="at">description_v =</span> <span class="cn">TRUE</span>, <span class="at">local =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">app_deps</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>), <span class="at">description_v =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">app_deps</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>), <span class="at">description_v =</span> <span class="cn">TRUE</span>, <span class="at">local =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <p>When we want to check only direct dependencies,
 <code>recursive</code> argument has to be set to <code>FALSE</code>.
 Then you could use the <code>renv::dependencies</code> function
 directly.</p>
-<div class="sourceCode" id="cb41"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">app_deps</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>), <span class="at">recursive =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">app_deps</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>), <span class="at">recursive =</span> <span class="cn">FALSE</span>)</span></code></pre></div>
 <p>The size of shiny app is a sum of dependencies and the app directory.
 The app dependencies (packages) are checked recursively.</p>
-<div class="sourceCode" id="cb42"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">app_size</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>)) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">app_size</span>(<span class="fu">system.file</span>(<span class="st">&quot;examples/04_mpg&quot;</span>, <span class="at">package =</span> <span class="st">&quot;shiny&quot;</span>)) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>)</span></code></pre></div>
 </div>
 <div id="base-packages" class="section level2">
 <h2>Base packages</h2>
 <p>Useful functions to get a list of base packages. You might want to
 exclude them from final results.</p>
-<div class="sourceCode" id="cb43"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pacs_base</span>()</span>
-<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="co"># start up loaded, base packages</span></span>
-<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pacs_base</span>(<span class="at">startup =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb44"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pacs_base</span>()</span>
+<span id="cb44-2"><a href="#cb44-2" aria-hidden="true" tabindex="-1"></a><span class="co"># start up loaded, base packages</span></span>
+<span id="cb44-3"><a href="#cb44-3" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pacs_base</span>(<span class="at">startup =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
 </div>
 
 

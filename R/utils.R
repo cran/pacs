@@ -9,9 +9,8 @@ isNA <- function(x) {
 
 #' Maximum version across the vector
 #' @description Reduce function over the `utils::compareVersion`
-#' @param vec character vector
-#' @param na.rm logical if to remove NA values.
-#' @return character maximum version
+#' @inheritParams standard_args
+#' @return `character` maximum version
 #' @examples
 #' compareVersionsMax(c("1.1.1", "0.2.0"))
 #' @export
@@ -39,9 +38,8 @@ compareVersionsMax <- function(vec, na.rm = TRUE) {
 
 #' Minimum version across the vector
 #' @description Reduce function over the `utils::compareVersion`
-#' @param vec character vector
-#' @param na.rm logical if to remove NA values.
-#' @return character minimal version
+#' @inheritParams standard_args
+#' @return `character` minimal version
 #' @examples
 #' compareVersionsMin(c("1.1.1", "0.2.0"))
 #' @export
@@ -69,9 +67,8 @@ compareVersionsMin <- function(vec, na.rm = TRUE) {
 
 #' Size of the package
 #' @description size of package.
-#' @param path path to the directory. Default: `"."`
-#' @param recursive logical if to assess the dependencies recursively. Default: TRUE
-#' @return numeric size in bytes, to get MB ten divide by `10**6`.
+#' @inheritParams standard_args
+#' @return `numeric` size in bytes, to get MB ten divide by `10**6`.
 #' @export
 #' @examples
 #' \dontrun{
@@ -90,10 +87,10 @@ is_online <- function() {
   curl::has_internet()
 }
 
-#' List of base R packages
-#' @description using installed.packages and priority equal "base" to retrieve base packages.
-#' @param startup logical include only startup packages. Default: FALSE
-#' @return character vector
+#' Get base R packages
+#' @description get base packages, all or only `startup`.
+#' @inheritParams standard_args
+#' @return `character` vector
 #' @examples
 #' \dontrun{
 #' pacs_base()

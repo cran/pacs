@@ -7,12 +7,12 @@
 pac_isin(pac, repos = biocran_repos())
 }
 \arguments{
-\item{pac}{character a package name.}
+\item{pac}{\code{character} a package name.}
 
 \item{repos}{character vector base URLs of the repositories to use. By default checking CRAN and newest Bioconductor per R version. Default \code{pacs::biocran_repos()}}
 }
 \value{
-logical if a package is inside repositories.
+\code{logical} if a package is inside repositories.
 }
 \description{
 using \code{utils::available.packages} to check if package is in repositories.

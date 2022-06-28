@@ -1,7 +1,20 @@
+# pacs 0.4.8
+
+* fix the "how-r-searches-and-finds-stuff" url.
+* a new `match_flavors` function to get CRAN server names matched to local `OS`.
+* improving docs.
+
+# pacs 0.4.6
+
+* a new function `pac_deps_heavy`, the demand revealed during the `useR` 2022 Conference. The direct package dependencies and counts of dependencies for each of them. Help to identify heavy packages.
+* small update of `tinyverse` vignette.
+* fix the documentation, `repos` argument in 2 functions get part of `base` argument description.
+* rm some of `Suggests` packages.
+
 # pacs 0.4.5
 
 * `pac_deps_dev` and `pac_deps_user` could be used for local packages now.
-* a new optional `lib_validate` column inspired by the Winston Chang, if the packages have a proper `Built` version.
+* a new optional `lib_validate` column inspired by Winston Chang, if the packages have a proper `Built` version.
 * a poster vignette.
 
 # pacs 0.4.4
@@ -9,7 +22,7 @@
 * `tinyverse` vignette.
 * fixed edge cases for `pacs::pac_deps`.
 * fixed `lock_validate`, the condition for validating the maximum number of packages was taken from the library size not the lock file size.
-* two new higer-level functions `pacs::pac_deps_user` and `pacs::pac_deps_dev`.
+* two new higher-level functions `pacs::pac_deps_user` and `pacs::pac_deps_dev`.
 * `renv` transferred to `Suggests`, as used by only 2 functions.
 * improved documentation.
 * updated pkgdown website.

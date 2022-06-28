@@ -1,18 +1,15 @@
 #' package DESCRIPTION file
 #' @description CRAN package DESCRIPTION file taken locally or remotely from GITHUB CRAN mirror or CRAN website.
-#' @param pac character a package name.
-#' @param version character package version, by default the is_installed version. Default: NULL
-#' @param at Date. Default: NULL
-#' @param local logical if to use local library. Default: FALSE
-#' @param lib.loc character vector, used optionally when local is equal TRUE. Default: `.libPaths()`
-#' @param repos character vector URLs of the repositories to use. Used only for the validation. Default `https://cran.rstudio.com/`
-#' @return list with names proper for DESCRIPTION file fields.
+#' By default works for the newest package version.
+#' @inheritParams standard_args
+#' @param repos `character` vector repositories URLs to use. Used only for the validation. Default `https://cran.rstudio.com/`
+#' @return `list` with names proper for DESCRIPTION file fields.
 #' @note Results are cached for 30 minutes with `memoise` package.
 #' @export
 #' @examples
 #' \dontrun{
-#'   pacs::pac_description("dplyr", version = "0.8.0")
-#'   pacs::pac_description("dplyr", at = as.Date("2019-02-01"))
+#' pacs::pac_description("dplyr", version = "0.8.0")
+#' pacs::pac_description("dplyr", at = as.Date("2019-02-01"))
 #' }
 pac_description <- function(pac,
                             version = NULL,

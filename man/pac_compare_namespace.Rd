@@ -13,18 +13,18 @@ pac_compare_namespace(
 )
 }
 \arguments{
-\item{pac}{character a package name.}
+\item{pac}{\code{character} a package name.}
 
-\item{old}{character an old version of package.}
+\item{old}{\code{character} an old version of package, default local version. Default: \code{NULL}}
 
-\item{new}{character a new version of package.}
+\item{new}{\code{character} a new version of package, default newest version. Default: \code{NULL}}
 
-\item{lib.loc}{character vector. Default:}
+\item{lib.loc}{\code{character} vector of search paths with local packages. Default: \code{.libPaths()}}
 
-\item{repos}{character vector URLs of the repositories to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
+\item{repos}{\code{character} vector repositories URLs to use. Used only for the validation. Default \verb{https://cran.rstudio.com/}}
 }
 \value{
-list with \code{c("imports", "exports", "exportPatterns", "importClasses", "importMethods", "exportClasses", "exportMethods", "exportClassPatterns", "dynlibs", "S3methods")} slots, and added and removed ones for each of them.
+\code{list} with \code{c("imports", "exports", "exportPatterns", "importClasses", "importMethods", "exportClasses", "exportMethods", "exportClassPatterns", "dynlibs", "S3methods")} slots, and added and removed ones for each of them.
 }
 \description{
 using the remote github CRAN mirror to compare NAMESPACE exports between specific packages versions.
