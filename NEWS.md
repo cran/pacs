@@ -1,3 +1,13 @@
+# pacs 0.4.10
+
+* remove the not needed testthat log file.
+
+# pacs 0.4.9
+
+* update all `*_validate` functions to treat the analyzed version as newest one if is bigger or equal to the newest CRAN, not only equal as before.
+* improved quality of vignettes.
+* add usage of the `pacs::checked_packages` function in README.
+
 # pacs 0.4.8
 
 * fix the "how-r-searches-and-finds-stuff" url.
