@@ -24,12 +24,13 @@ pac_lifeduration <- function(pac,
                              at = NULL,
                              lib.loc = .libPaths(),
                              repos = biocran_repos(),
-                             source = c("crandb", "cran")) {
+                             source = c("cran", "crandb")) {
   stopifnot(length(pac) == 1 && is.character(pac))
   stopifnot(!all(c(!is.null(version), !is.null(at))))
   stopifnot(is.null(lib.loc) || (all(lib.loc %in% .libPaths()) && (length(list.files(lib.loc)) > 0)))
   stopifnot(is.null(version) || (length(version) == 1 && is.character(version)))
   if (!is_online()) {
+    message("No internet connection detected.\n")
     return(NA)
   }
 
@@ -38,6 +39,13 @@ pac_lifeduration <- function(pac,
   ison_cran <- is_isin(pac, "https://cran.rstudio.com/")
   last_version <- pac_last(pac, repos = repos)
   if (isNA(last_version)) {
+    message(
+      sprintf(
+        "%s package is not in provided repositories %s.\n",
+        pac,
+        paste(repos, collapse = ", ")
+      )
+    )
     return(NA)
   }
 
@@ -50,7 +58,12 @@ pac_lifeduration <- function(pac,
   version <- if (!is.null(version)) {
     version
   } else if (!is.null(at)) {
-    utils::tail(pac_timemachine(pac, at = at)$Version, 1)
+    res <- pac_timemachine(pac, at = at)
+    if (isNA(res) || is.null(res)) {
+      return(NA)
+    } else {
+      utils::tail(res$Version, 1)
+    }
   } else {
     last_version
   }
@@ -115,12 +128,13 @@ pac_health <- function(pac,
                        flavors = NULL,
                        lib.loc = .libPaths(),
                        repos = "https://cran.rstudio.com/",
-                       source = c("crandb", "cran")) {
+                       source = c("cran", "crandb")) {
   stopifnot(length(pac) == 1 && is.character(pac))
   stopifnot(!all(c(!is.null(version), !is.null(at))))
   stopifnot(is.null(version) || (length(version) == 1 && is.character(version)))
   stopifnot(length(repos) == 1 && is.character(repos))
   if (!is_online()) {
+    message("No internet connection detected.\n")
     return(NA)
   }
 
@@ -147,6 +161,9 @@ pac_health <- function(pac,
 #' @description packages life duration for certain versions.
 #' @param source character one of `c("crandb", "loop_crandb", "loop_cran")`.
 #' The `"crandb"` works if less than `getOption("pacs.crandb_limit")` (currently 500) packages are looked for.
+#' When `crandb` linked source is used then `options(pacs.crandb_ntry = 3)` and `options(pacs.crandb_nsleep = 0.001)` can be used to control the fetch.
+#' `"pacs.crandb_ntry"` can be used to set the maximum number of try outs, by default 3.
+#' `"pacs.crandb_nsleep"` can be used to set the sleep duration between fetch try outs, by default 0.001.
 #' Default: `"crandb"`
 #' @inheritParams standard_args
 #' @return `data.frame` with two columns package name and life duration.
@@ -164,7 +181,12 @@ pac_health <- function(pac,
 #' # last versions
 #' pacs::pacs_lifeduration(c("dplyr", "tidyr"), sapply(c("dplyr", "tidyr"), pacs::pac_last))
 #' }
-pacs_lifeduration <- function(pacs, versions, source = c("crandb", "loop_crandb", "loop_cran"), lib.loc = .libPaths(), repos = biocran_repos()) {
+pacs_lifeduration <- function(
+    pacs, versions,
+    source = c("crandb", "loop_crandb", "loop_cran"),
+    lib.loc = .libPaths(),
+    repos = biocran_repos()
+) {
   if (length(pacs) != length(versions)) {
     return(rep(NA, length(pacs)))
   }
@@ -172,6 +194,11 @@ pacs_lifeduration <- function(pacs, versions, source = c("crandb", "loop_crandb"
 
   if (source == "crandb" && length(pacs) <= getOption("pacs.crandb_limit", 100)) {
     meta <- crandb_json(pacs)
+    if (isNA(meta)) {
+      message("crandb fetch failed, please try again.\n")
+      return(NA)
+    }
+
     ll <- lapply(names(meta), function(x) {
       tl <- meta[[x]]$timeline
       res <- data.frame(Package = x, Version = names(tl), Released = as.Date(substr(tl, 1, 10)), stringsAsFactors = FALSE)
@@ -179,6 +206,7 @@ pacs_lifeduration <- function(pacs, versions, source = c("crandb", "loop_crandb"
       res$LifeDuration <- diff(c(res$Released, Sys.Date()))
       res
     })
+
     names(ll) <- names(meta)
 
     ld <- sapply(names(ll), function(x) {
@@ -191,18 +219,21 @@ pacs_lifeduration <- function(pacs, versions, source = c("crandb", "loop_crandb"
       seq_along(pacs),
       function(x) {
         if (!isNA(version_p <- versions[x])) {
-          pac_lifeduration(
-            pacs[x],
-            as.character(version_p),
-            repos = repos,
-            lib.loc = lib.loc,
-            source = `if`(source == "loop_cran", "cran", "crandb")
+          suppressMessages(
+            pac_lifeduration(
+              pacs[x],
+              as.character(version_p),
+              repos = repos,
+              lib.loc = lib.loc,
+              source = `if`(source == "loop_cran", "cran", "crandb")
+            )
           )
         } else {
           NA
         }
       }, numeric(1)
     )
+
     result <- data.frame(Package = pacs, lifeduration = ld, stringsAsFactors = FALSE)
   }
   rownames(result) <- NULL

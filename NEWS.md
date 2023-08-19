@@ -1,3 +1,11 @@
+# pacs 0.5.1
+
+* due to instability issues with "crandb", the lifeduration and timemachine functions have been adjusted to fetch data directly from CRAN by default.
+* protect against 400 results from crandb. Please use new options if needed `options(pacs.crandb_ntry = 3)` and `options(pacs.crandb_nsleep = 0.1)` to control crandb fetch.
+. Linked with https://github.com/r-hub/pkgsearch/issues/117#issuecomment-1651081139
+* add informative messages when a web call failed.
+* small improvements in the tinyverse vignette.
+
 # pacs 0.4.10
 
 * remove the not needed testthat log file.

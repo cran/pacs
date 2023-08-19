@@ -349,7 +349,7 @@ website</a>.</p>
 </div>
 <div id="tinyverse-badges" class="section level2">
 <h2><code>tinyverse</code> badges</h2>
-<p>The <code>tidyverse</code> team wants to help and motivate R
+<p>The <code>tinyverse</code> advocates wants to help and motivate R
 developers. Thus they created a rest-API which generates a dependencies
 badge for each CRAN package. The badge contains 2 numbers; the first
 number is a direct dependency and the second one recursive ones. The R
@@ -571,12 +571,13 @@ packages must be downloaded by <strong>a developer</strong> (e.g. for
 packages and for <code>testthat</code> 80 packages now. Please use
 <code>pacs::pac_deps_dev("tinytest")</code> and
 <code>pacs::pac_deps_dev("testthat")</code> to confirm that. When
-<code>tinytest</code> and <code>testthat</code> are in the Imports field
-of another package (e.g. <code>pacs</code>), then the end user needs
-additional 0 packages for <code>tinytest</code> and 30 packages for
-<code>testthat</code> (<code>pacs::pac_deps_user("testthat")</code>).
-Remember that these dependencies might overlap with other packages and
-their dependencies.</p>
+<code>tinytest</code> and <code>testthat</code> are in the Suggests
+field of another package (e.g. <code>pacs</code>), then the end user
+needs additional 0 packages for <code>tinytest</code> and 30 packages
+for <code>testthat</code>
+(<code>pacs::pac_deps_user("testthat")</code>). Remember that these
+dependencies might overlap with other packages and their
+dependencies.</p>
 <p>Dependencies from the end user perspective:</p>
 <p><code>tinytest</code>:<br />
 <a href="https://CRAN.R-project.org/package=tinytest"><img
@@ -605,13 +606,13 @@ package is installed (available), if not, then ask the user to install
 it. If a function with the delayed loaded package is used in examples or
 tests, then the package must be in the <strong>Suggests</strong>
 field.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>func <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">&quot;PACKAGE&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    <span class="co"># regular code </span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Please install the PACKAGE to use the func function&quot;</span>)</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>  }</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>func <span class="ot">&lt;-</span> <span class="cf">function</span>() {</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="cf">if</span> (<span class="fu">requireNamespace</span>(<span class="st">&quot;PACKAGE&quot;</span>, <span class="at">quietly =</span> <span class="cn">TRUE</span>)) {</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>    <span class="co"># regular code </span></span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  } <span class="cf">else</span> {</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>    <span class="fu">stop</span>(<span class="st">&quot;Please install the PACKAGE to use the func function&quot;</span>)</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  }</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>}</span></code></pre></div>
 <p><code>parsnip</code>:<br />
 <a href="https://CRAN.R-project.org/package=parsnip"><img
 src="https://tinyverse.netlify.com/badge/parsnip" /></a></p>
@@ -643,33 +644,33 @@ might result in different packages sizes.</p>
 the <code>withr</code> package is recommended.
 <code>withr::with_temp_libpaths</code> is recommended to isolate the
 download process.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># restart of R session could be needed</span></span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>withr<span class="sc">::</span><span class="fu">with_temp_libpaths</span>({<span class="fu">install.packages</span>(<span class="st">&quot;devtools&quot;</span>); <span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_true_size</span>(<span class="st">&quot;devtools&quot;</span>) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)})</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="co"># restart of R session could be needed</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>withr<span class="sc">::</span><span class="fu">with_temp_libpaths</span>({<span class="fu">install.packages</span>(<span class="st">&quot;devtools&quot;</span>); <span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_true_size</span>(<span class="st">&quot;devtools&quot;</span>) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)})</span></code></pre></div>
 <p>Installation in your main library.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># if not have</span></span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="co"># if not have</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;devtools&quot;</span>)</span></code></pre></div>
 <p>Size of the <code>devtools</code> package:</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_size</span>(<span class="st">&quot;devtools&quot;</span>) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_size</span>(<span class="st">&quot;devtools&quot;</span>) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <p>The actual size of the <code>devtools</code> package is
 <code>113MB</code> for <code>devtools</code> with all dependencies and
 without base packages (<code>Mac OS arm64</code>).</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_true_size</span>(<span class="st">&quot;devtools&quot;</span>) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_true_size</span>(<span class="st">&quot;devtools&quot;</span>) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <p>A reasonable assumption might be to count only dependencies not used
 by any other package. Then we could use <code>exclude_joint</code>
 argument to limit them. However hard to assume if your local
 installation is a reasonable proxy for an average user.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># exclude packages if at least one other package uses it too</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_true_size</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">exclude_joint =</span> 1L) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a><span class="co"># exclude packages if at least one other package uses it too</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">cat</span>(pacs<span class="sc">::</span><span class="fu">pac_true_size</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">exclude_joint =</span> 1L) <span class="sc">/</span> <span class="dv">10</span><span class="sc">**</span><span class="dv">6</span>, <span class="st">&quot;MB&quot;</span>, <span class="st">&quot;</span><span class="sc">\n</span><span class="st">&quot;</span>)</span></code></pre></div>
 <p>It is crucial to check the number of dependencies too:</p>
 <p><a href="https://CRAN.R-project.org/package=devtools"><img
 src="https://tinyverse.netlify.com/badge/devtools" /></a></p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 70 recursive dependencies</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pac_deps</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">local =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>Package</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co"># 20 direct dependencies</span></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pac_deps</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">local =</span> <span class="cn">TRUE</span>, <span class="at">recursive =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>Package</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a><span class="co"># 70 recursive dependencies</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pac_deps</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">local =</span> <span class="cn">TRUE</span>)<span class="sc">$</span>Package</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co"># 20 direct dependencies</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>pacs<span class="sc">::</span><span class="fu">pac_deps</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">local =</span> <span class="cn">TRUE</span>, <span class="at">recursive =</span> <span class="cn">FALSE</span>)<span class="sc">$</span>Package</span></code></pre></div>
 <p>We could check out which of the direct dependencies are the heaviest
 ones:</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">pac_deps_heavy</span>(<span class="st">&quot;devtools&quot;</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="fu">pac_deps_heavy</span>(<span class="st">&quot;devtools&quot;</span>)</span></code></pre></div>
 </div>
 <div id="references" class="section level2">
 <h2>References</h2>

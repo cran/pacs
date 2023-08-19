@@ -31,23 +31,35 @@ pac_timemachine <- function(pac,
                             from = NULL,
                             to = NULL,
                             version = NULL,
-                            source = c("crandb", "cran")) {
+                            source = c("cran", "crandb")) {
   stopifnot(is.null(version) || (length(version) == 1 && is.character(version)))
   stopifnot(xor(
     !is.null(at) && inherits(at, "Date") && is.null(version),
     !is.null(from) && !is.null(to) && from <= to && inherits(from, "Date") && inherits(to, "Date") && is.null(at) && is.null(version)
   ) ||
     all(c(is.null(at), is.null(from), is.null(to), is.null(version))) || (!is.null(version) && length(version) == 1 && is.character(version)))
+
   source <- match.arg(source)
+
   if (!is_online()) {
+    message("No internet connection detected.\n")
     return(NA)
   }
 
   if (isFALSE(pac_isin(pac, "https://cran.rstudio.com/"))) {
+    message(
+      sprintf(
+        "%s package is not on CRAN.\n",
+        pac
+      )
+    )
     return(NA)
   }
 
   result <- pac_timemachine_table(pac, source = source)
+  if (isNA(result)) {
+    return(NA)
+  }
 
   if (isTRUE(!is.null(at))) {
     if (isTRUE(all(at >= result$Released))) {
@@ -69,7 +81,10 @@ pac_timemachine <- function(pac,
 }
 
 pac_cran_recent_raw <- function(pac) {
-  cran_page <- try(suppressWarnings(readLines(sprintf("https://CRAN.R-project.org/package=%s", pac), warn = FALSE)), silent = TRUE)
+  cran_page <- try(
+    suppressWarnings(readLines(sprintf("https://CRAN.R-project.org/package=%s", pac), warn = FALSE)),
+    silent = TRUE
+  )
   if (!inherits(cran_page, "try-error") && any(grepl(pac, cran_page))) {
     cran_v <- utils::head(gsub("</?td>", "", cran_page[grep("Version:", cran_page) + 1]), 1)
     cran_released <- utils::head(gsub("</?td>", "", cran_page[grep("Published:", cran_page) + 1]), 1)
@@ -137,6 +152,9 @@ pac_timemachine_table <- function(pac, source) {
     result <- pac_archived(pac)
     cran_page <- pac_cran_recent(pac)
     if (isNA(result)) {
+      if (isNA(cran_page)) {
+        message("cran fetch failed, please try again.\n")
+      }
       return(cran_page)
     }
 
@@ -145,6 +163,11 @@ pac_timemachine_table <- function(pac, source) {
     result <- rbind(result[, f_cols], cran_page[, f_cols])
   } else if (source == "crandb") {
     result_json <- crandb_json(pac)
+    if (isNA(result_json)) {
+      message("crandb fetch failed, please try again.\n")
+      return(NA)
+    }
+
     result <- data.frame(
       Package = pac,
       Released = unlist(result_json[[pac]]$timeline),
@@ -152,6 +175,7 @@ pac_timemachine_table <- function(pac, source) {
       Version = names(result_json[[pac]]$timeline),
       stringsAsFactors = FALSE
     )
+
     result$Released <- as.Date(substr(result$Released, 1, 10))
     result$Archived <- as.Date(substr(result$Archived, 1, 10))
     result <- result[order(result$Released), ]

@@ -34,7 +34,7 @@ More information is available on [`tinyverse` website](https://www.tinyverse.org
 
 ## `tinyverse` badges
 
-The `tidyverse` team wants to help and motivate R developers. Thus they created a rest-API which generates a dependencies badge for each CRAN package. 
+The `tinyverse` advocates wants to help and motivate R developers. Thus they created a rest-API which generates a dependencies badge for each CRAN package. 
 The badge contains 2 numbers; the first number is a direct dependency and the second one recursive ones.
  The R base packages are not counted. The `tinyverse` badge could have one of 4 colors: bright green, green, orange, or red. To get a green badge package have to have less than 5 packages (<5) in the `Depends`/`Imports`/`LinkingTo` fields (check the Dependencies subsection for more description). 
 To have a bright green a, zero dependencies are needed. The orange badge is from 5 to 9 dependencies (>=5 and <=9). And the last one red when there are more than 9 dependencies (>= 10). Of course, the base packages are not counted as a dependency, `pacs::pacs_base()`.
@@ -165,7 +165,7 @@ For me, `tinytest` is an interesting alternative compared to `testthat` neverthe
 I do not care how many dependencies have the `testthat` package as it is located in `Suggests` field of DESCRIPTION file. `testthat` will not be delayed loaded with `requireNampese` too.
 This means that the higher number of dependencies from the `testthat` package is only my problem (developer one, not the end user) when e.g. I am checking a package (e.g. with `R CMD check`).
 How many additional packages must be downloaded by **a developer** (e.g. for `R CMD check`) when comparing `tinytest` and `testthat`? In the case of `tinytest` it is zero packages and for `testthat` 80 packages now. Please use `pacs::pac_deps_dev("tinytest")` and `pacs::pac_deps_dev("testthat")` to confirm that.
-When `tinytest` and `testthat` are in the Imports field of another package (e.g. `pacs`), then the end user needs additional 0 packages for `tinytest` and 30 packages for `testthat` (`pacs::pac_deps_user("testthat")`). Remember that these dependencies might overlap with other packages and their dependencies.
+When `tinytest` and `testthat` are in the Suggests field of another package (e.g. `pacs`), then the end user needs additional 0 packages for `tinytest` and 30 packages for `testthat` (`pacs::pac_deps_user("testthat")`). Remember that these dependencies might overlap with other packages and their dependencies.
 
 Dependencies from the end user perspective:
 

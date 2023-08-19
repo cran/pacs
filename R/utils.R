@@ -311,15 +311,32 @@ read_html_table <- function(table_lines) {
   list(html = rrr_html, lines = rrr)
 }
 
-crandb_json_raw <- function(packages, limit = getOption("pacs.crandb_limit", 100)) {
-  if (!is_online()) NA
-  jsonlite::read_json(
-    sprintf(
-      'https://crandb.r-pkg.org/-/allall?keys=["%s"]&limit=%s',
-      paste(packages, collapse = '","'),
-      limit
-    )
-  )
-}
+crandb_json <- function(packages,
+                        limit = getOption("pacs.crandb_limit", 100),
+                        ntry = getOption("pacs.crandb_ntry", 3),
+                        nsleep = getOption("pacs.crandb_nsleep", 0.1)) {
+  if (!is_online()) {
+    message("No internet connection detected.\n")
+    return(NA)
+  }
 
-crandb_json <- memoise::memoise(crandb_json_raw, cache = cachem::cache_mem(max_age = 30 * 60))
+  crandb_url <- sprintf(
+    'https://crandb.r-pkg.org/-/allall?keys=["%s"]&limit=%s',
+    paste(packages, collapse = '","'),
+    limit
+  )
+
+  result <- NA
+  for (iter in seq_len(ntry)) {
+    fetch_call <- try(curl::curl_fetch_memory(crandb_url), silent = TRUE)
+
+    if (!inherits(fetch_call, "try-error") && (fetch_call$status_code == 200)) {
+      result <- jsonlite::fromJSON(rawToChar(fetch_call$content))
+      break
+    }
+
+    Sys.sleep(nsleep)
+  }
+
+  result
+}
