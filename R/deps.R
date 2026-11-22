@@ -62,12 +62,21 @@ pac_deps <- function(pac,
       )
       return(NA)
     }
+    available <- available_packages(repos)
+    if (!is.matrix(available) || !pac %in% rownames(available)) {
+      message(sprintf(
+        "%s is in the provided repositories but is not available for R %s or this platform.\n",
+        pac,
+        getRversion()
+      ))
+      return(NA)
+    }
     paks_global <- tools::package_dependencies(pac,
-      db = available_packages(repos),
+      db = available,
       which = fields,
       recursive = recursive
     )[[1]]
-    v_base <- available_packages(repos)
+    v_base <- available
     pac_v <- v_base[pac, c("Version")]
   }
 
@@ -182,7 +191,7 @@ pac_deps_dev <- function(pac, base = FALSE, local = FALSE, attr = TRUE, repos = 
 #' pacs::pac_deps_heavy("dplyr")
 #' }
 pac_deps_heavy <- function(pac, fields = c("Depends", "Imports", "LinkingTo"), lib.loc = .libPaths(), base = FALSE, local = FALSE, repos = pacs::biocran_repos()) {
-  top <- pac_deps(pac, fields = fields, recursive = FALSE, local = local, base = base, attr = TRUE, repos = repos)
+  top <- pac_deps(pac, fields = fields, lib.loc = lib.loc, recursive = FALSE, local = local, base = base, attr = TRUE, repos = repos)
   if (isNA(top)) {
     return(NA)
   }
@@ -241,9 +250,11 @@ app_deps <- function(path = ".",
     if (length(app_deps) == 0) {
       return(data.frame(Package = NA, Version = NA, Direct = NA)[0, ])
     }
-    not_installed <- setdiff(app_deps, rownames(installed_packages(lib.loc = .libPaths())))
-    if (length(not_installed) && local) {
-      stop(sprintf("Some of the dependency packages are not installed, %s", paste(not_installed, collapse = "; ")))
+    if (local) {
+      not_installed <- setdiff(app_deps, rownames(installed_packages(lib.loc = lib.loc)))
+      if (length(not_installed)) {
+        stop(sprintf("Some of the dependency packages are not installed, %s", paste(not_installed, collapse = "; ")))
+      }
     }
     if (recursive) {
       app_deps_all <- lapply(app_deps, function(x) pac_deps(x, repos = repos, lib.loc = lib.loc, local = local, fields = fields, description_v = description_v, base = base, attr = FALSE))

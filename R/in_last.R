@@ -1,9 +1,9 @@
 last_version_raw <- function(pac, repos) {
-  which_p <- rownames(available_packages(repos = repos)) == pac
-  if (any(which_p)) {
-    available_packages(repos = repos)[which_p, "Version"]
+  packages <- available_packages_all(repos = repos)
+  if (!is.matrix(packages) || !pac %in% rownames(packages)) {
+    return(NA_character_)
   } else {
-    NA
+    packages[pac, "Version"]
   }
 }
 
@@ -53,7 +53,8 @@ pac_isin <- function(pac, repos = biocran_repos()) {
 }
 
 is_isin_raw <- function(pac, repos = biocran_repos()) {
-  if (isTRUE(pac %in% rownames(available_packages(repos = repos)))) {
+  packages <- available_packages_all(repos = repos)
+  if (is.matrix(packages) && isTRUE(pac %in% rownames(packages))) {
     TRUE
   } else {
     FALSE
@@ -86,7 +87,7 @@ pac_islast <- function(pac, version = NULL, lib.loc = .libPaths(), repos = biocr
 
   if (isTRUE(is.null(version))) {
     if (is_installed) {
-      version <- pac_description(pac, local = TRUE)$Version
+      version <- pac_description(pac, local = TRUE, lib.loc = lib.loc)$Version
     } else {
       return(FALSE)
     }

@@ -1,7 +1,7 @@
 # pacs <a href='https://github.com/polkas/pacs'><img src='man/figures/pacs_logo.png' align="right" width="200px" /></a>
 [![R build status](https://github.com/polkas/pacs/workflows/R-CMD-check/badge.svg)](https://github.com/polkas/pacs/actions)
 [![CRAN](https://www.r-pkg.org/badges/version/pacs)](https://cran.r-project.org/package=pacs)
-[![codecov](https://codecov.io/gh/Polkas/pacs/branch/master/graph/badge.svg)](https://app.codecov.io/gh/Polkas/pacs)
+[![codecov](https://codecov.io/gh/Polkas/pacs/branch/main/graph/badge.svg)](https://app.codecov.io/gh/Polkas/pacs)
 
 [**For more information please visit the pacs website**](https://polkas.github.io/pacs/).
 
@@ -15,11 +15,16 @@ A set of tools that make life easier for developers and maintainers of R package
 - Assessing the life duration of a specific package version.
 - Checking a CRAN package check page status for any errors and warnings.
 - Retrieving a DESCRIPTION or NAMESPACE file for any package version.
+- Reporting declared system requirements for a package and its dependencies.
 - Comparing DESCRIPTION or NAMESPACE files between different package versions.
 - Getting a list of all releases for a specific package.
 - The Bioconductor is partly supported.
 
 **An Internet connection is required to take full advantage of most of the features.**
+
+Bioconductor release dates and R-version mappings come from its official
+configuration. Historical software-package counts are not provided by that
+source, so the `Software packages` column returned by `bio_releases()` is `NA`.
 
 **Almost all calls which requiring an Internet connection are cached (for 30 minutes) by the `memoise` package, so the second invocation of the same command (and arguments) is immediate. Restart the R session if you want to clear cached data.**
 
@@ -76,4 +81,11 @@ Looking for heavy dependencies:
 
 ```r
 pacs::pac_deps_heavy("caret")
+```
+
+Report system requirements declared by an installed package and its dependencies:
+
+```r
+sysreqs <- pacs::pac_system_requirements("dplyr")
+sysreqs |> unlist() |> unique()
 ```
